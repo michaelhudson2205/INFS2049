@@ -4,3 +4,122 @@ format: html
 ---
 
 ## INFS 2049 Experimental Design - Practical 1
+
+### Andres Cifuentes
+
+### 2024-11-26
+
+Note: this practical is adapted from INFS 2049 Experimental Design - Practical 1 by Joshua Chopin 2021
+
+Welcome to the first practical of *Experimental Design*! In this course, you will use the **R programming language** to explore data, perform statistical tests, and design experiments. This first practical will serve as a refresher on using R and introduce a few basic statistical tools.
+
+### **What to Expect:**
+
+In this practical, you will:
+
+1.  Familiarise yourself with R and its capabilities.
+2.  Explore and visualise an open-source dataset using different approaches.
+3.  Practice applying basic statistical tools to analyse data.
+
+The dataset for this activity is the **palmerpenguins** dataset (Horst AM, Hill AP, Gorman KB (2020). palmerpenguins: Palmer Archipelago (Antarctica) penguin data. R package version 0.1.1. <https://allisonhorst.github.io/palmerpenguins/index.html> (DOI 10.5281/zenodo.3960218)).
+
+![Figure 1: Meet the Palmer penguins. Artwork by allison_horst](lter_penguins.png)
+
+This dataset originates from the **Palmer Station in Antarctica** and contains observations of penguin species, including information such as species name, flipper length, and sex, among other variables. The dataset features three species of penguins: **Chinstrap**, **Adélie**, and **Gentoo**, each offering unique characteristics for analysis.
+
+-   **Adélie Penguins**: Named after Adélie d'Urville, the wife of the French explorer Jules Dumont d'Urville, who first documented this species.
+-   **Chinstrap Penguins**: Easily recognisable by the distinctive black band under their chin, resembling a strap.
+-   **Gentoo Penguins**: Their name's origin is less clear, though it might trace back to historical colonial or linguistic interpretations.
+
+As you work through the tasks, you will encounter questions marked with **Q**. While you are not required to submit answers, engaging with these questions by trying them out in R will help solidify your learning.
+
+### **Instructions:**
+
+This practical is self-paced, allowing you to work through the material at a time that suits you. To get started, ensure that:
+
+-   You have R and RStudio installed on your computer.
+-   The **palmerpenguins** package is installed in your R environment.
+
+Take your time to complete the tasks, experiment with the code, and reflect on the results. The goal is to build your confidence in using R and applying statistical concepts.
+
+**1. Loading the data**
+
+In R, there are two main ways to access the **Palmer Penguins** data for this practical. While the dataset is conveniently available as part of a package, it is common in real-world scenarios to work with raw data files line .csv. Below, you'll find instructions for both approaches.
+
+**Option 1: Using the palmerpenguins Package** The dataset is included in the `palmerpenguins` package, which you can install and load using the following commands:
+
+```{r}
+# Install (if required) and load the palmerpenguins package
+# install.packages("palmerpenguins")
+
+# library(palmerpenguins)
+```
+
+To see the datasets available in the package, use:
+
+```{r}
+# List datasets in the package
+# data(package = "palmerpenguins")
+```
+
+The package provides two datasets: **penguins** and **penguins_raw**. For this practical, we will use the cleaned **penguins** dataset.
+
+**Option 2: Using the provided .csv file** If you'd like to simulate a more typical scenario, you can load the data from the provided .csv file. This requires the `readr` package, which you can install and use as follows:
+
+```{r}
+# Install the readr package (if required)
+# install.packages("readr")
+```
+
+If you choose to use the .csv file, we assume that the dataset has already been downloaded and saved in your **current working directory**. Here's how you can confirm and manage your working directory in R:
+
+-   **Check Your Current Working Directory**: To verify your current working director, use the following command:
+
+```{r}
+# Check the current working directory
+# getwd()
+```
+
+The ouput will display the folder where R is currently looking for files. Ensure the `penguins.csv` file is in this directory.
+
+-   **Change the Working Directory**: If the .csv file is located in a different folder, y7ou can update your working directory using the `setwd()` function. For examp-le:
+
+```{r}
+# Change the working directory (replace with the path to your folder)
+# setwd("path/to/your/folder")
+# Verify the change
+# getwd()
+```
+
+Load the csv file:
+
+```{r}
+# Load library
+# library(readr)
+
+# Load the dataset from a csv file
+# penguins2 <- read_csv("penguins.csv")
+```
+
+| \## Rows: 344 Columns: 7
+| \## -- Column specification ----------------------
+| \## Delimiter: ","
+| \## chr (3): species, island, sex
+| \## dbl (4): bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g
+| \##
+| \## i Use `spec()` to retrieve the full column specification for this data.
+| \## i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+<br/>
+From this point onward, the practical will assume you are using the `penguins` dataset loaded directly from the `palmerpenguins` package.
+
+If, for any reason, you prefer to use the dataset from the .csv file, make sure to adjust the commands accordingly to reference the **penguins2** variable instead. Alternatively, you can rename **penguins2** to **penguins** for consistency.
+
+**2. Explore the dataset**
+
+**Inspecting the Data with head()**: The `head()` function provides a quick look at the first six rows of the dataset, showing column names and a preview of the data types in brackets:
+
+My notes
+
+https://support.microsoft.com/en-au/office/keyboard-shortcuts-for-international-characters-108fa0c1-fb8e-4aae-9db1-d60407d13c35
+
+https://quarto.org/docs/authoring/markdown-basics.html
