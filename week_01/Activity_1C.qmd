@@ -1,0 +1,6 @@
+---
+title: "Activity_1C"
+format: html
+---
+
+## INFS 2049 Experimental Design - Practical 1
