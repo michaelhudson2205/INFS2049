@@ -52,15 +52,17 @@ In R, there are two main ways to access the **Palmer Penguins** data for this pr
 # Install (if required) and load the palmerpenguins package
 # install.packages("palmerpenguins")
 
-# library(palmerpenguins)
+library(palmerpenguins)
 ```
 
 To see the datasets available in the package, use:
 
 ```{r}
 # List datasets in the package
-# data(package = "palmerpenguins")
+data(package = "palmerpenguins")
 ```
+
+![Figure 2: Screenshot of the datasets in the palmerpenguins package](Figure2.png)
 
 The package provides two datasets: **penguins** and **penguins_raw**. For this practical, we will use the cleaned **penguins** dataset.
 
@@ -109,14 +111,93 @@ Load the csv file:
 | \##
 | \## i Use `spec()` to retrieve the full column specification for this data.
 | \## i Specify the column types or set `show_col_types = FALSE` to quiet this message.
-<br/>
-From this point onward, the practical will assume you are using the `penguins` dataset loaded directly from the `palmerpenguins` package.
+
+<br/> From this point onward, the practical will assume you are using the `penguins` dataset loaded directly from the `palmerpenguins` package.
 
 If, for any reason, you prefer to use the dataset from the .csv file, make sure to adjust the commands accordingly to reference the **penguins2** variable instead. Alternatively, you can rename **penguins2** to **penguins** for consistency.
 
 **2. Explore the dataset**
 
 **Inspecting the Data with head()**: The `head()` function provides a quick look at the first six rows of the dataset, showing column names and a preview of the data types in brackets:
+
+-   **fct**: Factor (categorical variable)
+-   **dbl**: Double (numeric variable with decimals)
+-   **int**: Integer (numeric variable without decimals)
+
+In the output, you might notice that additional columns, such as `year`, are part of the dataset but not fully displayed due to space constraints.
+
+```{r}
+# Display the first six rows of the dataset
+head(penguins)
+```
+
+**Examining the Structure of the Dataset with `str()`**: The `str()` function, short for *structure*, provides a concise summary of any R object. For data frames like this one, it shows the number of rows and columns, the data types of each variable, and the factor levels for categorical variables.
+
+For example, you'll see that **Species** has three levels: `Adelie`, `Chinstrap`, and `Gentoo`, while **Island** also has its distinct set of factor levels.
+
+```{r}
+# Display the structure of the dataset
+str(penguins)
+```
+
+![Figure 3: Bill dimensions](culmen_depth.png)
+
+**Exploring Basic Descriptive Statistics with `summary()`**: The `summary()` function generates key descriptive statistics for each variable:
+
+-   **Factor variables**: Counts of each level (e.g., 152 Adelie penguins, 68 Chinstrap, 124 Gentoo)
+-   **Quantitative variables**: Minimum, mean, median, maximum, 1st quartile, and 3rd quartile values.
+-   **Missing data (NA)**: Counts of missing values for each variable.
+
+If you're unfamiliar with penguin anatomy:
+
+-   **Flippers**: Penguins' arms, used for swimming.
+-   **Bills**: Their beaks or mouths, measured by length and depth (See Figure 3 for reference).
+
+```{r}
+# Generate summary statistics for the dataset
+summary(penguins)
+```
+
+<hr/>
+
+**Q. What does the second quartile represent? Is it included in this summary?**
+
+<hr/>
+
+**3. Data visualisations with base R**
+
+**Barplot of Species Counts** First, we can create a barplot to visualise the number of observations for each species in the dataset. Using the `table()` function, we generate counts of each species and then pass this to `barplot()`.
+
+```{r}
+# Create a table of species counts
+speciescounts <- table(penguins$species)
+
+# Generate a simple barplot
+barplot(speciescounts)
+```
+
+**Observation**: In this initial barplot, some labels may be cut off due to size constraints. To address this, we can adjust the plot's appearance using additional arguments in the `barplot()` function.
+
+**Enhancing the Barplot**: By modifying parameters like label size (`cex.names`), orientation (`horiz`), bar colours (`col`), and label alignment (`las`), we can improve the barplot's readability and aesthetics.
+
+```{r}
+# Enhanced barplot with customisation
+barplot(
+  speciescounts,
+  horiz = TRUE,
+  col = "darkblue",
+  las = 1, # Rotate axis labels to horizontal
+  cex.names = 0.75 # Reduce label size for better fit
+)
+```
+
+To explore additional customization options for barplots, refer to the documentation:
+
+```{r}
+# ?barplot
+```
+
+**Boxplot for Exploring Bill Depth** Bixplots are a powerful tool for visualising the distribution of a numerical variable across different groups.
 
 My notes
 
