@@ -9,7 +9,9 @@ format: html
 
 ### 2024-11-26
 
-#### (Student: Michael Hudson)
+**(Student: Michael Hudson)**
+
+<hr/>
 
 Note: this practical is adapted from INFS 2049 Experimental Design - Practical 1 by Joshua Chopin 2021
 
