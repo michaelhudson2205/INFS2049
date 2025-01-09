@@ -79,7 +79,173 @@ t.test(cerealdata$Mood_Diff[cerealdata$Condition == "Bar"],
        cerealdata$Mood_Diff[cerealdata$Condition == "No bar"])
 ```
 
-The output of the t-test tells us a number of things.
+The output of the t-test tells us a number of things. First, with a p-value of 0.0001 we can reject the null hypothesis and conclude that consuming a breakfast cereal bar does alter mood at the 5% significance level (it is not included in our call to t-test, but the default value for conf.level, the confidence level parameter, is 0.95). We can see the mean difference in mood score before and after breakfast time of the two groups is 25.59 and -19.18, we got a rough idea of these values from the boxplot earlier. Finally, the output tells us with 95% confidence that the difference in mean mood score before and after breakfast between groups lies between 23.35 and 66.19.
+
+Before moving on, we should check that our experiment had adequate *power*. To do so we will make use of the `pwr` package which can calculate power for both independent and paired sample t-tests using the `pwr.t.test` function. The function requires us to input *n*, the number of observations per sample, *d*, the effect size Cohen's d and *sig.level*, the significance level we wish to use. Cohen's d can be calculated manually, or we can simply use the effectsize package.
+
+```{r}
+# install.packages("pwr")
+library(pwr)
+# install.packages("effectsize")
+library(effectsize)
+```
+
+First we will calculate Cohen's d, where we simply pass the two samples as input. Note that the `cohens_d` function outputs a number of variables, we just want to keep the d value.
+
+```{r}
+cd <- cohens_d(cerealdata$Mood_Diff[cerealdata$Condition == "Bar"],
+               cerealdata$Mood_Diff[cerealdata$Condition == "No bar"])
+cd
+```
+
+```{r}
+D <- cd$Cohens_d
+```
+
+Finally, we can call the power test function.
+
+```{r}
+pwr.t.test(n = 16, d = D, sig.level = 0.05)
+```
+
+From the power test we can conclude that the experiment used enough samoples to test this hypothesis.
+
+Lets try another hypothesis test using the data.
+
+Null Hypothesis ($H_0$): Having a breakfast cereal bar does not improve recall
+
+$H_0: \mu_0 - \mu_1 = 0$
+
+Alternative Hypothesis ($H_1$): Having a breakfast cereal bar does improve recall
+
+$H_0: \mu_0 - \mu_1 \neq 0$
+
+```{r}
+t.test(cerealdata$Recall[cerealdata$Condition == "Bar"],
+       cerealdata$Recall[cerealdata$Condition == "No bar"])
+```
+
+Again we can see a p-value less than 0.05, so it is safe to reject the null hypothesis. One point of interest though, is that the difference between groups seems to be smaller. At the bottom end of the 5% significance interval there is only a 0.98 increase in recall score between those who had a bar and those who did not. This is a little over 10% of the mean recall value across the dataset, whereas for mood score the bottom of our confidence interval had a much larger value. This indicates that while the difference is statistically significant, it may not be as substantial as the increase in mood.
+
+Once again we can check the power of the experiment -
+
+```{r}
+cd_recall <- cohens_d(cerealdata$Recall[cerealdata$Condition == "Bar"],
+                      cerealdata$Recall[cerealdata$Condition == "No bar"])
+cd_recall
+```
+
+```{r}
+D_recall <- cd_recall$Cohens_d
+pwr.t.test(n = 16, d = D_recall, sig.level = 0.05)
+```
+
+**Q.** What does this power test tell us?
+
+**Testing reflex blink-rate of the eyes**
+
+The second dataset we are going to use in this practical comes from an experiment in which 12 subjects (people) were asked to steer a pencil along a moving track, in order to provide information on the reflex blink-rate of the eyes during visual motor tasks. Each subject was tested for two spells each of eight minutes, each spell having alternating periods of straight and oscillating track: the average blink-rate per minute was obtained for each subject for each type of track.
+
+**Q.** Before reading on, does this experiment use paired or independent samples?
+
+**Q.** Before reading on, formulate a hypothesis we could test using this dataset. Define a null and alternative hypothesis.
+
+The data comes from a package called `PairedData` which contains data from a number of paired sample experiments.
+
+```{r}
+# install.packages("PairedData")
+library(PairedData)
+```
+
+```{r}
+data("Blink")
+head(Blink)
+```
+
+```{r}
+summary(Blink)
+```
+
+From the summary of the blink data we can already see that there could be a difference in blink-rate when using a straight or oscillating track.
+
+**Q.** Create a boxplot for both the straight and oscillating track data. Make some notes about what you can see from the plot (Careful! The boxplot function won't be called the same way it was before).
+
+If you were able to make the boxplot you would have noticed a couple of outliers. These belong to Subject 1 and Subject 2 (i.e. the first two rows in the dataset), do you think these subjects should have been excluded from the analysis? Some outliers are okay, as long as they don't stop our data from being normally distributed. This can be tested using the Shapiro-Wilk test, which R has implemented in the base stats package. If we have a look at each individual sample -
+
+```{r}
+shapiro.test(Blink$Oscillating)
+```
+
+```{r}
+shapiro.test(Blink$Straight)
+```
+
+we can see that both tests returned a value less than 0.05, indicating that the data is not normally distributed. However, in a paired samples experiment, we are interested in the difference between samples, so instead, we should be testing the difference -
+
+```{r}
+shapiro.test(Blink$Straight - Blink$Oscillating)
+```
+
+which passes the test for normality. If the data did not pass the test we would need to consider some non-parametric alternatives to the t-test which do not rely on the underlying normal distribution. Back to the aim of the experiment and hopefully we arrived at the same hypothesis to test, which is -
+
+Null Hypothesis ($H_0$): The type of track does not effect blink rate
+
+$H_0: \mu_{difference} = 0$
+
+Alternative Hypothesis ($H_1$): The type of track does effect blink rate
+
+$H_0: \mu_{difference} \neq 0$
+
+We again use the `t.test` function to perform our t-test and check the results. Because our data now comes from a paired experiment we just need to add `paired = TRUE` to the function call.
+
+```{r}
+t.test(Blink$Straight, Blink$Oscillating, paired = TRUE)
+```
+
+As suspected, the p-value is incredibly small, indicating that we can reject the null hypothesis and be confident that the type of track has an effect on blink-rate.
+
+**Q.** Similar to the previous tests, what other notes can you make based on the results of the t-test?
+
+As mentioned earlier, the same function can be used to calculate the power of a paired samples experiment, we just need to specify the type of experiment in the call to `pwr.t.test`
+
+```{r}
+cd_blink <- cohens_d(Blink$Straight, Blink$Oscillating)
+cd_blink
+```
+
+```{r}
+D_blink <- cd_blink$Cohens_d
+pwr.t.test(n = 12, d = D_blink, sig.level = 0.05, type = "paired")
+```
+
+That is a lot of power!
+
+**Have a go on your own**
+
+For the final part of the practical you will repeat the above procedures on your own, using a new dataset. This dataset gives the PSS (stress measurement) for 26 people in prison at the entry and at the exit. Part of these people were physically trained (Sport) during their imprisonment. You can think of this kind of like the cereal bar experiment, except instead of cereal bars some subjects played sport and instead of at the breakfast table the subjects were at prison.
+
+```{r}
+data("PrisonStress")
+head(PrisonStress)
+```
+
+```{r}
+summary(PrisonStress)
+```
+
+**Q.** Does this experiment use independent or paired samples?
+
+**Q.** What can you gather from the summary?
+
+**Q.** Make a pair of boxplots of the data and note what you can see.
+
+**Q.** Does this data pass a test for normality?
+
+**Q.** What null and alternative hypothesis should be used here?
+
+**Q.** Perform the t-test for your hypothesis. Are the results as you expected?
+
+**Q.** Did the experiment have adequate power for this hypothesis? (Note: we need to use `pwr.t2n.test` when there are two samples with unequal `n`. It is called in the same way though, type `?pwr.t2n.test` for direction)
 
 My Notes
 

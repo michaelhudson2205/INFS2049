@@ -242,7 +242,305 @@ mean of x mean of y
  25.58551 -19.18751 </code></pre>
 </div>
 </div>
-<p>The output of the t-test tells us a number of things.</p>
+<p>The output of the t-test tells us a number of things. First, with a p-value of 0.0001 we can reject the null hypothesis and conclude that consuming a breakfast cereal bar does alter mood at the 5% significance level (it is not included in our call to t-test, but the default value for conf.level, the confidence level parameter, is 0.95). We can see the mean difference in mood score before and after breakfast time of the two groups is 25.59 and -19.18, we got a rough idea of these values from the boxplot earlier. Finally, the output tells us with 95% confidence that the difference in mean mood score before and after breakfast between groups lies between 23.35 and 66.19.</p>
+<p>Before moving on, we should check that our experiment had adequate <em>power</em>. To do so we will make use of the <code>pwr</code> package which can calculate power for both independent and paired sample t-tests using the <code>pwr.t.test</code> function. The function requires us to input <em>n</em>, the number of observations per sample, <em>d</em>, the effect size Cohen’s d and <em>sig.level</em>, the significance level we wish to use. Cohen’s d can be calculated manually, or we can simply use the effectsize package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("pwr")</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pwr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'pwr' was built under R version 4.4.2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("effectsize")</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(effectsize)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'effectsize' was built under R version 4.4.2</code></pre>
+</div>
+</div>
+<p>First we will calculate Cohen’s d, where we simply pass the two samples as input. Note that the <code>cohens_d</code> function outputs a number of variables, we just want to keep the d value.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>cd <span class="ot">&lt;-</span> <span class="fu">cohens_d</span>(cerealdata<span class="sc">$</span>Mood_Diff[cerealdata<span class="sc">$</span>Condition <span class="sc">==</span> <span class="st">"Bar"</span>],</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>               cerealdata<span class="sc">$</span>Mood_Diff[cerealdata<span class="sc">$</span>Condition <span class="sc">==</span> <span class="st">"No bar"</span>])</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>cd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Cohen's d |       95% CI
+------------------------
+1.51      | [0.71, 2.29]
+
+- Estimated using pooled SD.</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>D <span class="ot">&lt;-</span> cd<span class="sc">$</span>Cohens_d</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Finally, we can call the power test function.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pwr.t.test</span>(<span class="at">n =</span> <span class="dv">16</span>, <span class="at">d =</span> D, <span class="at">sig.level =</span> <span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+     Two-sample t test power calculation 
+
+              n = 16
+              d = 1.510226
+      sig.level = 0.05
+          power = 0.9850448
+    alternative = two.sided
+
+NOTE: n is number in *each* group</code></pre>
+</div>
+</div>
+<p>From the power test we can conclude that the experiment used enough samoples to test this hypothesis.</p>
+<p>Lets try another hypothesis test using the data.</p>
+<p>Null Hypothesis (<span class="math inline">\(H_0\)</span>): Having a breakfast cereal bar does not improve recall</p>
+<p><span class="math inline">\(H_0: \mu_0 - \mu_1 = 0\)</span></p>
+<p>Alternative Hypothesis (<span class="math inline">\(H_1\)</span>): Having a breakfast cereal bar does improve recall</p>
+<p><span class="math inline">\(H_0: \mu_0 - \mu_1 \neq 0\)</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(cerealdata<span class="sc">$</span>Recall[cerealdata<span class="sc">$</span>Condition <span class="sc">==</span> <span class="st">"Bar"</span>],</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>       cerealdata<span class="sc">$</span>Recall[cerealdata<span class="sc">$</span>Condition <span class="sc">==</span> <span class="st">"No bar"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Welch Two Sample t-test
+
+data:  cerealdata$Recall[cerealdata$Condition == "Bar"] and cerealdata$Recall[cerealdata$Condition == "No bar"]
+t = 3.2667, df = 23.856, p-value = 0.003284
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 0.9890026 4.3859974
+sample estimates:
+mean of x mean of y 
+   9.1875    6.5000 </code></pre>
+</div>
+</div>
+<p>Again we can see a p-value less than 0.05, so it is safe to reject the null hypothesis. One point of interest though, is that the difference between groups seems to be smaller. At the bottom end of the 5% significance interval there is only a 0.98 increase in recall score between those who had a bar and those who did not. This is a little over 10% of the mean recall value across the dataset, whereas for mood score the bottom of our confidence interval had a much larger value. This indicates that while the difference is statistically significant, it may not be as substantial as the increase in mood.</p>
+<p>Once again we can check the power of the experiment -</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>cd_recall <span class="ot">&lt;-</span> <span class="fu">cohens_d</span>(cerealdata<span class="sc">$</span>Recall[cerealdata<span class="sc">$</span>Condition <span class="sc">==</span> <span class="st">"Bar"</span>],</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                      cerealdata<span class="sc">$</span>Recall[cerealdata<span class="sc">$</span>Condition <span class="sc">==</span> <span class="st">"No bar"</span>])</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>cd_recall</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Cohen's d |       95% CI
+------------------------
+1.15      | [0.40, 1.90]
+
+- Estimated using pooled SD.</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>D_recall <span class="ot">&lt;-</span> cd_recall<span class="sc">$</span>Cohens_d</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">pwr.t.test</span>(<span class="at">n =</span> <span class="dv">16</span>, <span class="at">d =</span> D_recall, <span class="at">sig.level =</span> <span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+     Two-sample t test power calculation 
+
+              n = 16
+              d = 1.154957
+      sig.level = 0.05
+          power = 0.8850346
+    alternative = two.sided
+
+NOTE: n is number in *each* group</code></pre>
+</div>
+</div>
+<p><strong>Q.</strong> What does this power test tell us?</p>
+<p><strong>Testing reflex blink-rate of the eyes</strong></p>
+<p>The second dataset we are going to use in this practical comes from an experiment in which 12 subjects (people) were asked to steer a pencil along a moving track, in order to provide information on the reflex blink-rate of the eyes during visual motor tasks. Each subject was tested for two spells each of eight minutes, each spell having alternating periods of straight and oscillating track: the average blink-rate per minute was obtained for each subject for each type of track.</p>
+<p><strong>Q.</strong> Before reading on, does this experiment use paired or independent samples?</p>
+<p><strong>Q.</strong> Before reading on, formulate a hypothesis we could test using this dataset. Define a null and alternative hypothesis.</p>
+<p>The data comes from a package called <code>PairedData</code> which contains data from a number of paired sample experiments.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("PairedData")</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(PairedData)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'PairedData' was built under R version 4.4.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: MASS</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: gld</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'gld' was built under R version 4.4.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: mvtnorm</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'mvtnorm' was built under R version 4.4.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'mvtnorm'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:effectsize':
+
+    standardize</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: lattice</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: ggplot2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'PairedData'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:base':
+
+    summary</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"Blink"</span>)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(Blink)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Subject Straight Oscillating
+1     S01     24.0        15.0
+2     S02     19.5         6.6
+3     S03      8.2         1.9
+4     S04      8.5         1.5
+5     S05     12.1         1.1
+6     S06      8.0         2.5</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(Blink)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    Subject     Straight      Oscillating    
+ S01    :1   Min.   : 5.50   Min.   : 0.500  
+ S02    :1   1st Qu.: 7.80   1st Qu.: 0.975  
+ S03    :1   Median : 8.35   Median : 1.750  
+ S04    :1   Mean   :10.58   Mean   : 3.083  
+ S05    :1   3rd Qu.:10.60   3rd Qu.: 2.650  
+ S06    :1   Max.   :24.00   Max.   :15.000  
+ (Other):6                                   </code></pre>
+</div>
+</div>
+<p>From the summary of the blink data we can already see that there could be a difference in blink-rate when using a straight or oscillating track.</p>
+<p><strong>Q.</strong> Create a boxplot for both the straight and oscillating track data. Make some notes about what you can see from the plot (Careful! The boxplot function won’t be called the same way it was before).</p>
+<p>If you were able to make the boxplot you would have noticed a couple of outliers. These belong to Subject 1 and Subject 2 (i.e.&nbsp;the first two rows in the dataset), do you think these subjects should have been excluded from the analysis? Some outliers are okay, as long as they don’t stop our data from being normally distributed. This can be tested using the Shapiro-Wilk test, which R has implemented in the base stats package. If we have a look at each individual sample -</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(Blink<span class="sc">$</span>Oscillating)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  Blink$Oscillating
+W = 0.63433, p-value = 0.0002106</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(Blink<span class="sc">$</span>Straight)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  Blink$Straight
+W = 0.7773, p-value = 0.00523</code></pre>
+</div>
+</div>
+<p>we can see that both tests returned a value less than 0.05, indicating that the data is not normally distributed. However, in a paired samples experiment, we are interested in the difference between samples, so instead, we should be testing the difference -</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(Blink<span class="sc">$</span>Straight <span class="sc">-</span> Blink<span class="sc">$</span>Oscillating)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  Blink$Straight - Blink$Oscillating
+W = 0.94464, p-value = 0.5604</code></pre>
+</div>
+</div>
+<p>which passes the test for normality. If the data did not pass the test we would need to consider some non-parametric alternatives to the t-test which do not rely on the underlying normal distribution. Back to the aim of the experiment and hopefully we arrived at the same hypothesis to test, which is -</p>
+<p>Null Hypothesis (<span class="math inline">\(H_0\)</span>): The type of track does not effect blink rate</p>
+<p><span class="math inline">\(H_0: \mu_{difference} = 0\)</span></p>
+<p>Alternative Hypothesis (<span class="math inline">\(H_1\)</span>): The type of track does effect blink rate</p>
+<p><span class="math inline">\(H_0: \mu_{difference} \neq 0\)</span></p>
+<p>We again use the <code>t.test</code> function to perform our t-test and check the results. Because our data now comes from a paired experiment we just need to add <code>paired = TRUE</code> to the function call.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(Blink<span class="sc">$</span>Straight, Blink<span class="sc">$</span>Oscillating, <span class="at">paired =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Paired t-test
+
+data:  Blink$Straight and Blink$Oscillating
+t = 9.7392, df = 11, p-value = 9.621e-07
+alternative hypothesis: true mean difference is not equal to 0
+95 percent confidence interval:
+ 5.805055 9.194945
+sample estimates:
+mean difference 
+            7.5 </code></pre>
+</div>
+</div>
+<p>As suspected, the p-value is incredibly small, indicating that we can reject the null hypothesis and be confident that the type of track has an effect on blink-rate.</p>
+<p><strong>Q.</strong> Similar to the previous tests, what other notes can you make based on the results of the t-test?</p>
+<p>As mentioned earlier, the same function can be used to calculate the power of a paired samples experiment, we just need to specify the type of experiment in the call to <code>pwr.t.test</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>cd_blink <span class="ot">&lt;-</span> <span class="fu">cohens_d</span>(Blink<span class="sc">$</span>Straight, Blink<span class="sc">$</span>Oscillating)</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>cd_blink</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Cohen's d |       95% CI
+------------------------
+1.53      | [0.59, 2.43]
+
+- Estimated using pooled SD.</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>D_blink <span class="ot">&lt;-</span> cd_blink<span class="sc">$</span>Cohens_d</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="fu">pwr.t.test</span>(<span class="at">n =</span> <span class="dv">12</span>, <span class="at">d =</span> D_blink, <span class="at">sig.level =</span> <span class="fl">0.05</span>, <span class="at">type =</span> <span class="st">"paired"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+     Paired t test power calculation 
+
+              n = 12
+              d = 1.525146
+      sig.level = 0.05
+          power = 0.9976126
+    alternative = two.sided
+
+NOTE: n is number of *pairs*</code></pre>
+</div>
+</div>
+<p>That is a lot of power!</p>
+<p><strong>Have a go on your own</strong></p>
+<p>For the final part of the practical you will repeat the above procedures on your own, using a new dataset. This dataset gives the PSS (stress measurement) for 26 people in prison at the entry and at the exit. Part of these people were physically trained (Sport) during their imprisonment. You can think of this kind of like the cereal bar experiment, except instead of cereal bars some subjects played sport and instead of at the breakfast table the subjects were at prison.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"PrisonStress"</span>)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(PrisonStress)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Subject Group PSSbefore PSSafter
+1      A1 Sport        25       13
+2      A3 Sport        17       15
+3      A4 Sport        12       13
+4      A5 Sport        21       22
+5      A6 Sport        29       25
+6      A7 Sport        28       24</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(PrisonStress)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    Subject       Group      PSSbefore        PSSafter    
+ A1     : 1   Control:11   Min.   : 0.00   Min.   : 8.00  
+ A2     : 1   Sport  :15   1st Qu.:15.50   1st Qu.:16.75  
+ A3     : 1                Median :21.00   Median :21.50  
+ A4     : 1                Mean   :20.73   Mean   :21.58  
+ A5     : 1                3rd Qu.:27.00   3rd Qu.:26.75  
+ A6     : 1                Max.   :44.00   Max.   :33.00  
+ (Other):20                                               </code></pre>
+</div>
+</div>
+<p><strong>Q.</strong> Does this experiment use independent or paired samples?</p>
+<p><strong>Q.</strong> What can you gather from the summary?</p>
+<p><strong>Q.</strong> Make a pair of boxplots of the data and note what you can see.</p>
+<p><strong>Q.</strong> Does this data pass a test for normality?</p>
+<p><strong>Q.</strong> What null and alternative hypothesis should be used here?</p>
+<p><strong>Q.</strong> Perform the t-test for your hypothesis. Are the results as you expected?</p>
+<p><strong>Q.</strong> Did the experiment have adequate power for this hypothesis? (Note: we need to use <code>pwr.t2n.test</code> when there are two samples with unequal <code>n</code>. It is called in the same way though, type <code>?pwr.t2n.test</code> for direction)</p>
 <p>My Notes</p>
 <p>https://docs.mathjax.org/en/latest/input/tex/macros/index.html</p>
 <p>https://www.cmor-faculty.rice.edu/~heinken/latex/symbols.pdf</p>
