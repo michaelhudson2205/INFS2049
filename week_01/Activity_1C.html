@@ -103,8 +103,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="section" class="level3">
 <h3 class="anchored" data-anchor-id="section">2024-11-26</h3>
+<section id="student-michael-hudson" class="level4">
+<h4 class="anchored" data-anchor-id="student-michael-hudson">(Student: Michael Hudson)</h4>
 <p>Note: this practical is adapted from INFS 2049 Experimental Design - Practical 1 by Joshua Chopin 2021</p>
 <p>Welcome to the first practical of <em>Experimental Design</em>! In this course, you will use the <strong>R programming language</strong> to explore data, perform statistical tests, and design experiments. This first practical will serve as a refresher on using R and introduce a few basic statistical tools.</p>
+</section>
 </section>
 <section id="what-to-expect" class="level3">
 <h3 class="anchored" data-anchor-id="what-to-expect"><strong>What to Expect:</strong></h3>
@@ -176,7 +179,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>The ouput will display the folder where R is currently looking for files. Ensure the <code>penguins.csv</code> file is in this directory.</p>
 <ul>
-<li><strong>Change the Working Directory</strong>: If the .csv file is located in a different folder, y7ou can update your working directory using the <code>setwd()</code> function. For examp-le:</li>
+<li><strong>Change the Working Directory</strong>: If the .csv file is located in a different folder, you can update your working directory using the <code>setwd()</code> function. For examp-le:</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Change the working directory (replace with the path to your folder)</span></span>
@@ -246,7 +249,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="culmen_depth.png" class="img-fluid figure-img"></p>
-<figcaption>Figure 3: Bill dimesnions</figcaption>
+<figcaption>Figure 3: Bill dimensions</figcaption>
 </figure>
 </div>
 <p><strong>Exploring Basic Descriptive Statistics with <code>summary()</code></strong>: The <code>summary()</code> function generates key descriptive statistics for each variable:</p>
@@ -324,7 +327,202 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ?barplot</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p><strong>Boxplot for Exploring Bill Depth</strong> Bixplots are a powerful tool for visualising the distribution of a numerical variable across different groups.</p>
+<p><strong>Boxplot for Exploring Bill Depth</strong> Boxplots are a powerful tool for visualising the distribution of a numerical variable across different groups. Here, we create a boxplot to compare <strong>bill depth (mm)</strong> among the three penguin species.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a boxplot of bill depth by species</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(bill_depth_mm <span class="sc">~</span> species, <span class="at">data =</span> penguins)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Activity_1C_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Key Observations from the Boxplot:</strong></p>
+<ul>
+<li>The <strong>median bill depth</strong> of Adelie and Chinstrap penguins is similar.</li>
+<li>The <strong>range of bill depth</strong> for Adelie penguins is wider than for Chinstrap penguins, indicating greater variability.</li>
+<li>Gentoo penguins appear to have a <strong>significantly smaller bill depth</strong> compared to the other two species.</li>
+</ul>
+<p>To explore the strengths and limitations of boxplots further, you can refer to this resource: <a href="https://www.data-to-viz.com/caveat/boxplot.html" class="uri">https://www.data-to-viz.com/caveat/boxplot.html</a></p>
+<hr>
+<p><strong>Q. What other hypotheses or conclusions can you make from the boxplots?</strong></p>
+<hr>
+<p><strong>4. Beyond Base R: Visualisation with ggplot2</strong></p>
+<p>While Base R offers various visualisation tools with plenty of customisation options, ggplot2 (or simply <strong>ggplot</strong>) has become the most popular package for creating more complex and aesthetically pleasing plots. It is part of the <strong>tidyverse</strong> ecosystem, which includes tools that will be useful throughout your analysis journey.</p>
+<p><strong>Installing ggplot2</strong> You can install <strong>ggplot2</strong> either as part of the <strong>tidyverse</strong> package or on its own:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install ggplot2 via tidyverse</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("tidyverse")</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Or install ggplot2 alone</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("ggplot2")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the tidyverse suite</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Or load only the ggplot package</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="co"># library(ggplot2)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>For more details on ggplot2, refer to the following resource: <a href="https://rstudio.github.io/cheatsheets/html/data-visualization.html" class="uri">https://rstudio.github.io/cheatsheets/html/data-visualization.html</a>.</p>
+<p><strong>ggplot2 Basics</strong> In ggplot, visualisations are built from three main components:</p>
+<ol type="1">
+<li><strong>Data</strong>: The dataset to visualise.</li>
+<li><strong>Coordinate System</strong>: Defines how data is mapped (e.g.&nbsp;Cartesian coordinates).</li>
+<li><strong>Geoms (Geometric Objects)</strong>: Visual marks like points, bars, lines, etc., which represent data.</li>
+</ol>
+<p><strong>A simple workflow</strong> involves:</p>
+<ol type="1">
+<li>Creating a base plot with <code>ggplot()</code>.</li>
+<li>Adding geoms, labels, and themes layer by layer.</li>
+</ol>
+<p>Here’s an example of a simple histogram to visualise body mass:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Histogram of body mass with ggplot2</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> penguins, <span class="fu">aes</span>(<span class="at">x =</span> body_mass_g)) <span class="sc">+</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">fill =</span> <span class="st">"skyblue"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 2 rows containing non-finite outside the scale range
+(`stat_bin()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Activity_1C_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Handling Missing Values</strong> When you run the above code, you might notice a warning about missing values. We can identify and locate these <strong>NA</strong> values:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Identify rows with NA values in the body_mass_g column</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">which</span>(<span class="fu">is.na</span>(penguins<span class="sc">$</span>body_mass_g))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]   4 272</code></pre>
+</div>
+</div>
+<p>The warning indicates two missing values in the <code>body_mass_g</code> column. Missing values can occur elsewhere in the dataset too, so it is essential to handle them appropriately depending on the context and your analysis goals.</p>
+<p><strong>Removing Missing Values</strong> For simplicity, let’s remove any rows containing missing values and create a new dataset:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove rows with NA values and create a new dataset</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>penguins3 <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(penguins)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can check how many rows were removed:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare row counts before and after removing NA values</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(penguins) <span class="co"># Original dataset</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 344</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nrow</span>(penguins3) <span class="co"># Dataset without NAs</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 333</code></pre>
+</div>
+</div>
+<p>Removing NAs ensures cleaner data for further visualisation and analysis. However, <strong>always consider the implications of omitting data</strong>, especially when the proportion of missing values is significant.</p>
+<p><strong>Scatter Plot with Linear Model</strong> The first visualisation uses <code>geom_point</code> to create a scatter plot showing the relationship between <strong>bill length</strong> and <strong>flipper length</strong> for each penguin species. Then, <code>geom_smooth(method = "lm")</code> adds a linear regression line for each species.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> penguins3, <span class="fu">aes</span>(<span class="at">x =</span> bill_length_mm, <span class="at">y =</span> flipper_length_mm, <span class="at">colour =</span> species)) <span class="sc">+</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Activity_1C_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In this plot:</p>
+<ul>
+<li><strong>Gentoo penguins</strong> have the largest flipper lengths.</li>
+<li><strong>Chinstrap</strong> and <strong>Adelie</strong> penguins show a similar flipper length, but their bill lengths differ significantly.</li>
+</ul>
+<p><strong>Density Plot by Island</strong> The second plot uses <code>geom_density</code> to create overlapping density plots of <strong>bill depth</strong> for penguins found on different islands.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> penguins3, <span class="fu">aes</span>(<span class="at">x =</span> bill_depth_mm, <span class="at">fill =</span> island)) <span class="sc">+</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Activity_1C_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This visualisation highlights that penguins on <strong>Biscoe Island</strong> tend to have smaller bill depths than those on the other islands.</p>
+<p><strong>Stacked Bar Plot by Species and Island</strong> The next plot uses a stacked bar plot (<code>geom_bar(position = "stack", stat = "identity")</code>) to show the distribution of penguin species across the islands.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> penguins3, <span class="fu">aes</span>(<span class="at">x =</span> island, <span class="at">y =</span> species, <span class="at">fill =</span> species)) <span class="sc">+</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"stack"</span>, <span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Count"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Activity_1C_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This plot confirms that <strong>Gentoo penguins</strong> are found exclusively on <strong>Biscoe Island</strong>.</p>
+<p><strong>Barplot of Mean Flipper Length by Species</strong> We can use <strong>aggregate</strong> to compute the mean <strong>flipper length</strong> for each species. Then, we plot these means using a bar plot in ggplot.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate mean flipper length per species</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>flipper_means <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(penguins3[, <span class="dv">5</span>], <span class="fu">list</span>(penguins3<span class="sc">$</span>species), mean)</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>flipper_means</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    Group.1 flipper_length_mm
+1    Adelie          190.1027
+2 Chinstrap          195.8235
+3    Gentoo          217.2353</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the mean flipper length by species</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> flipper_means, <span class="fu">aes</span>(<span class="at">x =</span> Group<span class="fl">.1</span>, <span class="at">y =</span> flipper_length_mm)) <span class="sc">+</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Activity_1C_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<hr>
+<p><strong>Q. Why do we need the <code>stat = "identity"</code> inside of <code>geom_bar</code> and what does it mean?</strong></p>
+<hr>
+<hr>
+<p><strong>Q. Can you change some aesthetics to make our last barplot look nicer?</strong></p>
+<hr>
+<hr>
+<p><strong>Q. Create two new plots that weren’t used in this practical using graph types from the ggplotcheat sheet.</strong></p>
+<hr>
+<hr>
+<p><strong>Q. (Harder, uses previous R syntax knowledge). Create a scatter plot coloured by species, with bill length along the x-axis and flipper length along the y-axis, but only using data where the body mass is greater than 3700 grams. Then create the same plot, but when body mass is less than or equal to 3700 grams.</strong></p>
+<hr>
 <p>My notes</p>
 <p>https://support.microsoft.com/en-au/office/keyboard-shortcuts-for-international-characters-108fa0c1-fb8e-4aae-9db1-d60407d13c35</p>
 <p>https://quarto.org/docs/authoring/markdown-basics.html</p>

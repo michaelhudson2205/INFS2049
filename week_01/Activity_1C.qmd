@@ -9,6 +9,8 @@ format: html
 
 ### 2024-11-26
 
+#### (Student: Michael Hudson)
+
 Note: this practical is adapted from INFS 2049 Experimental Design - Practical 1 by Joshua Chopin 2021
 
 Welcome to the first practical of *Experimental Design*! In this course, you will use the **R programming language** to explore data, perform statistical tests, and design experiments. This first practical will serve as a refresher on using R and introduce a few basic statistical tools.
@@ -84,7 +86,7 @@ If you choose to use the .csv file, we assume that the dataset has already been 
 
 The ouput will display the folder where R is currently looking for files. Ensure the `penguins.csv` file is in this directory.
 
--   **Change the Working Directory**: If the .csv file is located in a different folder, y7ou can update your working directory using the `setwd()` function. For examp-le:
+-   **Change the Working Directory**: If the .csv file is located in a different folder, you can update your working directory using the `setwd()` function. For examp-le:
 
 ```{r}
 # Change the working directory (replace with the path to your folder)
@@ -197,7 +199,169 @@ To explore additional customization options for barplots, refer to the documenta
 # ?barplot
 ```
 
-**Boxplot for Exploring Bill Depth** Bixplots are a powerful tool for visualising the distribution of a numerical variable across different groups.
+**Boxplot for Exploring Bill Depth** Boxplots are a powerful tool for visualising the distribution of a numerical variable across different groups. Here, we create a boxplot to compare **bill depth (mm)** among the three penguin species.
+
+```{r}
+# Create a boxplot of bill depth by species
+boxplot(bill_depth_mm ~ species, data = penguins)
+```
+
+**Key Observations from the Boxplot:**
+
+- The **median bill depth** of Adelie and Chinstrap penguins is similar.
+- The **range of bill depth** for Adelie penguins is wider than for Chinstrap penguins, indicating greater variability.
+- Gentoo penguins appear to have a **significantly smaller bill depth** compared to the other two species.
+
+To explore the strengths and limitations of boxplots further, you can refer to this resource: <https://www.data-to-viz.com/caveat/boxplot.html>
+
+<hr/>
+
+**Q. What other hypotheses or conclusions can you make from the boxplots?**
+
+<hr/>
+
+**4. Beyond Base R: Visualisation with ggplot2**
+
+While Base R offers various visualisation tools with plenty of customisation options, ggplot2 (or simply **ggplot**) has become the most popular package for creating more complex and aesthetically pleasing plots. It is part of the **tidyverse** ecosystem, which includes tools that will be useful throughout your analysis journey.
+
+**Installing ggplot2** You can install **ggplot2** either as part of the **tidyverse** package or on its own:
+
+```{r}
+# Install ggplot2 via tidyverse
+# install.packages("tidyverse")
+
+# Or install ggplot2 alone
+# install.packages("ggplot2")
+```
+
+```{r}
+# Load the tidyverse suite
+library(tidyverse)
+
+# Or load only the ggplot package
+# library(ggplot2)
+```
+
+For more details on ggplot2, refer to the following resource: <https://rstudio.github.io/cheatsheets/html/data-visualization.html>.
+
+**ggplot2 Basics** In ggplot, visualisations are built from three main components:
+
+1. **Data**: The dataset to visualise.
+2. **Coordinate System**: Defines how data is mapped (e.g. Cartesian coordinates).
+3. **Geoms (Geometric Objects)**: Visual marks like points, bars, lines, etc., which represent data.
+
+**A simple workflow** involves:
+
+1. Creating a base plot with `ggplot()`.
+2. Adding geoms, labels, and themes layer by layer.
+
+Here's an example of a simple histogram to visualise body mass:
+
+```{r}
+# Histogram of body mass with ggplot2
+ggplot(data = penguins, aes(x = body_mass_g)) +
+  geom_histogram(fill = "skyblue")
+```
+
+**Handling Missing Values** When you run the above code, you might notice a warning about missing values. We can identify and locate these **NA** values:
+
+```{r}
+# Identify rows with NA values in the body_mass_g column
+which(is.na(penguins$body_mass_g))
+```
+
+The warning indicates two missing values in the `body_mass_g` column. Missing values can occur elsewhere in the dataset too, so it is essential to handle them appropriately depending on the context and your analysis goals.
+
+**Removing Missing Values** For simplicity, let's remove any rows containing missing values and create a new dataset:
+
+```{r}
+# Remove rows with NA values and create a new dataset
+penguins3 <- na.omit(penguins)
+```
+
+We can check how many rows were removed:
+
+```{r}
+# Compare row counts before and after removing NA values
+nrow(penguins) # Original dataset
+```
+
+```{r}
+nrow(penguins3) # Dataset without NAs
+```
+
+Removing NAs ensures cleaner data for further visualisation and analysis. However, **always consider the implications of omitting data**, especially when the proportion of missing values is significant.
+
+**Scatter Plot with Linear Model** The first visualisation uses `geom_point` to create a scatter plot showing the relationship between **bill length** and **flipper length** for each penguin species. Then, `geom_smooth(method = "lm")` adds a linear regression line for each species.
+
+```{r}
+ggplot(data = penguins3, aes(x = bill_length_mm, y = flipper_length_mm, colour = species)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+In this plot:
+
+- **Gentoo penguins** have the largest flipper lengths.
+- **Chinstrap** and **Adelie** penguins show a similar flipper length, but their bill lengths differ significantly.
+
+**Density Plot by Island** The second plot uses `geom_density` to create overlapping density plots of **bill depth** for penguins found on different islands.
+
+```{r}
+ggplot(data = penguins3, aes(x = bill_depth_mm, fill = island)) +
+  geom_density(alpha = 0.5)
+```
+
+This visualisation highlights that penguins on **Biscoe Island** tend to have smaller bill depths than those on the other islands.
+
+**Stacked Bar Plot by Species and Island** The next plot uses a stacked bar plot (`geom_bar(position = "stack", stat = "identity")`) to show the distribution of penguin species across the islands.
+
+```{r}
+ggplot(data = penguins3, aes(x = island, y = species, fill = species)) +
+  geom_bar(position = "stack", stat = "identity") +
+  theme(axis.text.y = element_blank()) +
+  ylab("Count")
+```
+
+This plot confirms that **Gentoo penguins** are found exclusively on **Biscoe Island**.
+
+**Barplot of Mean Flipper Length by Species** We can use **aggregate** to compute the mean **flipper length** for each species. Then, we plot these means using a bar plot in ggplot.
+
+```{r}
+# Calculate mean flipper length per species
+flipper_means <- aggregate(penguins3[, 5], list(penguins3$species), mean)
+flipper_means
+```
+
+```{r}
+# Plot the mean flipper length by species
+ggplot(data = flipper_means, aes(x = Group.1, y = flipper_length_mm)) +
+  geom_bar(stat = "identity")
+```
+
+<hr/>
+
+**Q. Why do we need the `stat = "identity"` inside of `geom_bar` and what does it mean?**
+
+<hr/>
+
+<hr/>
+
+**Q. Can you change some aesthetics to make our last barplot look nicer?**
+
+<hr/>
+
+<hr/>
+
+**Q. Create two new plots that weren't used in this practical using graph types from the ggplotcheat sheet.**
+
+<hr/>
+
+<hr/>
+
+**Q. (Harder, uses previous R syntax knowledge). Create a scatter plot coloured by species, with bill length along the x-axis and flipper length along the y-axis, but only using data where the body mass is greater than 3700 grams. Then create the same plot, but when body mass is less than or equal to 3700 grams.**
+
+<hr/>
 
 My notes
 
