@@ -1,0 +1,160 @@
+---
+title: "Practical_3"
+format: html
+---
+
+## INFS 2049 Experimental Design
+
+### Joshua Chopin
+
+### 2025-01-10
+
+**(Student: Michael Hudson)**
+
+<hr/>
+
+This week we are going to be looking at completely randomised designs which will be analyzed using ANOVA tests and ad-hoc procedures. The dataset to be used this week relates to sales of books, music and electronics in four major regions; North, South, East and West. The sales data comes in the form of a .csv file. Remember you will need the `readr` package installed to load it using the `read_csv` function. And as always, we should begin by summarising the data.
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+salesdata <- read_csv("sales.csv")
+head(salesdata)
+```
+
+```{r}
+summary(salesdata)
+```
+
+You can see that along with the sales and region data for each transaction we have information about the gender of the customer as well as a variable related to advertising. There are a number of hypotheses we could test using this data, but today we are going to test whether there is a statistically significant difference in average music sales by region. There are four different regions in the dataset (North, South, East and West), so the formulation of the hypothesis test looks like this:
+
+Null Hypothesis ($H_0$): All means are equal i.e.
+
+$H_0: \mu_N = \mu_E = \mu_S = \mu_W$
+
+Alternative Hypothesis ($H_1$): Not all means are equal.
+
+**Q.** Write down some other hypotheses that could be formulated for a one-way ANOVA test using this data.
+
+Previously, we have defaulted to boxplots to get a first look at the data, you are more than welcome to create one on your own, actually -
+
+**Q.** Create a boxplot with region on the x-axis and music sales on the y-axis.
+
+but in this practical we will try a barplot with error bars. Recall from Practical 1 that we can use the aggregate function to get mean values within groups. Here we can modify the aggregate function to get both the mean and standard errors for each region. Note that we calculate standard error using the variance for each region divided by the sample size.
+
+```{r}
+mean_and_se <- aggregate(Music_Sales ~ Region,
+                         salesdata,
+                         function(x) c(mean = mean(x), se = sqrt(var(x)/length(x))))
+mean_and_se$Music_Sales[, 1]
+```
+
+```{r}
+mean_and_se$Music_Sales[, 2]
+```
+
+```{r}
+ggplot(data = mean_and_se,
+       aes(x = Region, y = Music_Sales[, 1])) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  geom_errorbar(aes(ymin = Music_Sales[, 1] - Music_Sales[, 2],
+                    ymax = Music_Sales[, 1] + Music_Sales[, 2])) +
+  ylab("Mean Music Sales ($)")
+```
+
+**Q.** Using the barplot, does it appear there are differences in mean sales between some of the regions? If so, which ones? Which differences would you expect to be statistically significant?
+
+Before conducting the hypothesis test we need to check all the necessary requirements. The first of which is whether all the samples are normally distributed. To do so we will use the Shapiro-Wilk test introduced last week.
+
+```{r}
+shapiro.test(salesdata$Music_Sales[salesdata$Region == "West"])
+```
+
+```{r}
+shapiro.test(salesdata$Music_Sales[salesdata$Region == "East"])
+```
+
+```{r}
+shapiro.test(salesdata$Music_Sales[salesdata$Region == "South"])
+```
+
+```{r}
+shapiro.test(salesdata$Music_Sales[salesdata$Region == "North"])
+```
+
+We can see that for the West, East and South regions, the *p* value is greater than 0.05 so normality can be assumed. The North region has a *p* value of approximately 0.02, however the sample size is reasonably large (>30) and the distribution is not severly skewed so we can proceed.
+
+**Q.** The boxplots created earlier give us some indication of whether the data from the North region is skewed. Try creating a histogram to further support this claim.
+
+The next requirement to check is whether variances among the samples are equal.
+
+```{r}
+region_sd <- aggregate(salesdata$Music_Sales, list(salesdata$Region), sd)
+region_sd
+```
+
+$$
+\frac{\sigma_{largest}}{\sigma_{smallest}}=\frac{19.58447}{11.16794}=1.753<2
+$$
+
+It looks like the variances of the samples may be equal, as the result is less than two, but it is close. To investigate further, we can use some of R's in-built functions to test for equality of variance, such as Bartlett's or Levene's test.
+
+```{r}
+bartlett.test(Music_Sales ~ Region, data = salesdata)
+```
+
+Here the p-value is well under the target value of 0.05, suggesting that there may be evidence to suggest that the variance across regions is statistically significantly different. Lets try Levene's test, it requires the `car` package.
+
+```{r}
+library(car)
+```
+
+```{r}
+leveneTest(Music_Sales ~ Region, data = salesdata)
+```
+
+Once again the result is below the 0.05 threshold, so it appears that the assumption of homogeneity of variance has been violated. As a result, we report Welch's corrected F-ratio instead of the one given in a standard ANOVA table. In R we call the Welch ANOVA using `oneway.test`. It is worth noting that `oneway.test` has an argument called *var.equal*, which takes a value of TRUE or FALSE, depending on whether the variances in the samples should be treated as equal or not, but this defaults to FALSE so we don't need to specify.
+
+```{r}
+w_anova <- oneway.test(Music_Sales ~ Region, data = salesdata)
+w_anova
+```
+
+The p-value is much smaller than our significance level of 0.05, so we can reject the null hypothesis and conclude that there are differences among the mean values of music sales across regions. For interests sake we can also run a standard ANOVA.
+
+```{r}
+s_anova <- aov(Music_Sales ~ Region, data = salesdata)
+summary(s_anova)
+```
+
+and see that in this case the conclusion would have been the same.
+
+Next, we can look at the parameter estimates (differences in mean) relative to the mean for the East region.
+
+```{r}
+summary(lm(Music_Sales ~ Region, data = salesdata))
+```
+
+One of the first things to note from the summary table is that all mean differences are statistically significant. However, the summary table also gives us some indication of the ways that they differ.
+
+**Q.** The estimate for (Intercept) represents the mean value in the East region. What do the estimates for the other regions represent? Why are they all negative?
+
+In order to get a better idea of these mean differences we can conduct an ad-hoc test. There are a number of different post-hoc tests that can be conducted following a hypothesis test. One of the most popular options, that we will now use, is Tukey's test, also known as the Tukey method, also known as Tukey's HSD (Honestly Significant Difference). Tukey's test should be carried out on the results of standard ANOVA rather than the Welch's ANOVA that we used previously. We will run Tukey's on the Standard ANOVA we created, then run a different pairwise test for the Welch's ANOVA.
+
+```{r}
+tukey_test <- TukeyHSD(s_anova)
+tukey_test
+```
+
+There are a lot of numbers in the output, but a few things stand out. The adjusted p-value is significant at the 0.05 level for all mean differences except for North and South. Furthermore, the largest difference by far appears to be between the East and West regions. We can visualise these results using base R's `plot` command. By default if we don't give R any information about how the data should be plotted, it will do its best to choose the right format based on the data. You can see below that we can simply pass *tukey.test* to the plot command to get a nice visualisation of the confidence intervals (I had to change a couple of settings to rotate axis labels and keep them on the page).
+
+```{r}
+par(mar = c(5, 6, 4, 1) + 0.1)
+plot(tukey_test, las = 1)
+```
+
+As the numbers indicated,
+
+My Notes
