@@ -155,6 +155,54 @@ par(mar = c(5, 6, 4, 1) + 0.1)
 plot(tukey_test, las = 1)
 ```
 
-As the numbers indicated,
+As the numbers indicated, the difference in mean between the South and North region might not be significant. Also keep in mind when interpreting these values that sign is important. West - North has a value of -12.66, so the negative sign tells us that North had the greater mean music sales.
+
+The ad-hoc test we use following Welch's ANOVA is called Games-Howell, and we will need to access it through a new package.
+
+```{r}
+# install.packages("rstatix")
+library(rstatix)
+```
+
+The `rstatix` package has a function called `games_howell_test` which we will call by passing first the dataframe, then the formula for our factors and, if necessary, a confidence level, though we will stick with the default 0.95.
+
+```{r}
+games_howell_test(salesdata, Music_Sales ~ Region)
+```
+
+We can see that for the most part the results between the two tests are similar. The estimate for mean differences is actually identical, but they differ in confidence intervals and adjusted p-values. The overall results don't change, that is, all of the mean differences are significant except for North and South.
+
+**Q.** Do these results confirm your impressions from the error bar plot?
+
+Finally, lets try some different contrasts. Until now we have been testing the hypothesis that not all means are equal, and the post-hoc tests have given us more clarity around the answer to that question. But let us say the hypothesis itself changes, such as; is the mean for the North region different to the mean for the South region? i.e. $H_0: \mu_S = \mu_N$ or is the mean of the East and North regions together different from the mean of the South and West regions? i.e. $H_0: \frac{1}{2}(\mu_E + \mu_N) = \frac{1}{2}(\mu_S + \mu_W)$. There is an easy way to test these hypotheses using our existing ANOVA model and the `gmodels` package.
+
+```{r}
+# install.packages("gmodels")
+library(gmodels)
+```
+
+First we need to convert the Region variable to a factor, then take a look at Region to find the order of the levels.
+
+```{r}
+salesdata$Region <- factor(salesdata$Region)
+levels(salesdata$Region)
+```
+
+Once we know which order the levels are in we can define some contrasts. The below lines of code may not look straight forward but see if you can piece it all together once we print the variable `L` to the screen.
+
+```{r}
+con <- matrix(c(0, -1, 1, 0, -1, -1, 1, 1), 4, 2)
+L <- t(con)
+rownames(L) <- c(" - North v South", " - E&N v S&W")
+L
+```
+
+Let us explain what happened here. The matrix that we initialised called `con` houses the contrasts. As we have four levels in our Region factor, the first four entries of `con` are the first contrast. Using the order of levels we saw earlier this is a value of 0 for East, -1 for North, 1 for South and 0 for West, indicating that North is the baseline, South is being tested and East and West aren't being used. The next contrast refers to the second hypothesis that we formulated earlier. Finally, the 4, 2 part, shapes the matrix to have 4 columns and 2 rows. We transpose the matrix using the `t` function, then provide some rownames for the two hypotheses. From the `gmodels` package we call the `fit.contrasts` function, providing it with the ANOVA we made earlier, the factor that we are interested in and our matrix of contrasts.
+
+```{r}
+fit.contrast(s_anova, "Region", L)
+```
+
+Based on the output
 
 My Notes
