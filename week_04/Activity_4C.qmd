@@ -1,0 +1,39 @@
+---
+title: "Activity_4C"
+format: html
+---
+
+## INFS 2049 Experimental Design
+## Creating a two-factor factorial plan in R
+
+### Joshua Chopin
+
+### 2025-01-10
+
+**(Student: Michael Hudson)**
+
+<hr/>
+
+So far in this course we have mostly concerned ourselves with understanding the design of certain experiments, then analysing a dataset that adheres to that design. It is possible to take a step back, and consider designing the experiment itself in R. For instance, the `expand.grid` function from Base R can be used to design all sorts of factorial experiments without having to import any data.
+
+Imagine we want to run an experiemnt to investigate the effect that length (L) and circumference (C) of hot dogs has on the performance of professional hot dog eaters. We want to test three different lengths, they are 18, 20 and 22 cms. As well as three different circumferences: 16, 20 and 24 cms. Expand grid creates the factorial version of this experiment for us
+
+```{r}
+G <- expand.grid(L = c(18, 20, 22), C = c(16, 20, 24))
+G
+```
+
+You can see that each value of L is being considered once for each value of C. If we would like that to occur more than once, i.e. to add a replication, we can use the `rbind` function
+
+```{r}
+G2 <- rbind(G, G)
+G2
+```
+
+Finally, note that the runs are not randomised. Three of the same circumference are always being tested in a group. We are inviting unknown or unaccounted for factors to cast doubt over our results. The `sample` function can be used to randomise the order of the run numbers 1 to 18, and we can then apply that random order to our experiment.
+
+```{r}
+hotdog_design <- G2[order(sample(1:18)),]
+hotdog_design
+```
+
