@@ -1,0 +1,142 @@
+---
+title: "Practical_4"
+format: html
+---
+
+## INFS 2049 Experimental Design
+
+### Joshua Chopin
+
+### 2025-01-11
+
+**(Student: Michael Hudson)**
+
+<hr/>
+
+In last week's practical we analysed a sales dataset and used one-way ANOVA tests to look for differences between means in sales across four major regions. Eventually we found some statistically significant differences between regions and found that the difference between North and South was not significant. While these results were theoretically correct, we had access to other factors that were not used. Take gender for example. Do people in the East really make larger purchases, or does one gender make larger purchases than the other and there is simply more of that gender in the East. The reverse can also be asked. If we find a difference in means between gender, is it due to gender, or the region those people are living in?
+
+In this practical we will answer those types of questions using the two-way ANOVA test. While last week we investigated music sales across the four regions, this week we will look at electronics sales. The primary purpose of the two-way ANOVA in this scenario is to understand whether there is an **interaction** between gender and region on electronics sales.
+
+We will begin by loading, visualising and summarising the sales dataset that we used last week. Remember you will need the `readr` package installed to load it using the `read_csv` function.
+
+```{r}
+library(tidyverse)
+salesdata <- read.csv("sales.csv")
+```
+
+We already ran a standard summary of all the data in last week's practical. However, now that electronics sales is the variable of interest, we can reproduce the aggregation and barplots that were created last week.
+
+```{r}
+region_mean_and_se <- aggregate(Electronics_Sales ~ Region,
+                                salesdata,
+                                function(x) c(mean = mean(x), 
+                                              se = sqrt(var(x)/length(x))))
+
+gender_mean_and_se <- aggregate(Electronics_Sales ~ Gender,
+                                salesdata,
+                                function(x) c(mean = mean(x), 
+                                              se = sqrt(var(x)/length(x))))
+```
+
+An easy way to visualise two barplots side by side is by using the `patchwork` package. The patchwork package has a simple to use syntax where the user names each plot then simply adds them together using the + symbol.
+
+```{r}
+# install.packages("patchwork")
+library(patchwork)
+
+p1 <- ggplot(data = region_mean_and_se,
+             aes(x = Region, y = Electronics_Sales[, 1])) +
+  geom_bar(stat = "identity", fill = "lightsalmon") +
+  geom_errorbar(aes(ymin = Electronics_Sales[, 1] - Electronics_Sales[, 2],
+                    ymax = Electronics_Sales[, 1] - Electronics_Sales[, 2])) +
+  ylab("Mean Electronics Sales ($)")
+
+p2 <- ggplot(data = gender_mean_and_se,
+             aes(x = Gender, y = Electronics_Sales[, 1])) +
+  geom_bar(stat = "identity", fill = "turquoise") +
+  geom_errorbar(aes(ymin = Electronics_Sales[, 1] - Electronics_Sales[, 2],
+                    ymax = Electronics_Sales[, 1] - Electronics_Sales[, 2])) +
+  ylab("Mean Electronics Sales ($)")
+
+p1 + p2 + plot_layout(width = unit(c(5, 4), c("cm", "cm")))
+```
+
+While a standard summary of the whole dataset was used in the previous practical, a more sophisticated summary of the data can be obtained using the `doBy` package. The `summaryBy` function of the `doBy` package allows us to provide a formula that we would like to summarise by, that is, the same kind of formula we would pass to the `aov` function. The formula is expressed the same way it has been previously, it just needs to be updated to include another factor and an interaction term. To add another factor we can simply use the + symbol, and to add an interaction term we separate two factors by a colon.
+
+```{r}
+# install.packages("doBy")
+library(doBy)
+```
+
+```{r}
+sB <- summaryBy(Electronics_Sales ~ Region + Gender + Region:Gender, data = salesdata)
+sB
+```
+
+There appears to be some differences by gender across the four regions, but are they statistically significant? The two-way ANOVA test mostly makes the same assumptions as the one-way ANOVA and already saw last week how to test for normality and variance equality using the Shapiro-Wilk test and Bartlett's test, respectively. Unbalanced designs, that is, unequal sample sizes, can sometimes be a further concern for two-way ANOVA tests. While ANOVA tests are somewhat robust to deviations in the assumption of equal variance, this robustness no longer holds when sample sizes are not equal. For us, this means that a 'win-lose' result is acceptable, while a 'lose-lose' is not i.e. We can have unequal sample sizes as long as variances are equal and we can have unequal variances as long as sample sizes are equal but we cannot have both conditions fail.
+
+Starting with the Shapiro-Wilk test, we need to consider both Region and Gender.
+
+```{r}
+shapiro.test(salesdata$Electronics_Sales[salesdata$Region == "West"])
+```
+
+```{r}
+shapiro.test(salesdata$Electronics_Sales[salesdata$Region == "East"])
+```
+
+```{r}
+shapiro.test(salesdata$Electronics_Sales[salesdata$Region == "South"])
+```
+
+```{r}
+shapiro.test(salesdata$Electronics_Sales[salesdata$Region == "North"])
+```
+
+```{r}
+shapiro.test(salesdata$Electronics_Sales[salesdata$Gender == "Male"])
+```
+
+```{r}
+shapiro.test(salesdata$Electronics_Sales[salesdata$Gender == "Female"])
+```
+
+As was the case in the previous practical, all factors pass the Shapiro-Wilk test except for one. Here it is the Female gender, which has a p-value of 0.035, but again, due to large sample size and no severe skewing we can proceed. Next we run Bartlett's test for equal variances.
+
+```{r}
+bartlett.test(Electronics_Sales ~ Region, data = salesdata)
+```
+
+```{r}
+bartlett.test(Electronics_Sales ~ Gender, data = salesdata)
+```
+
+We can see that with p-values much greater than 0.05 both factors contain equal variances among levels. As a result, we do not need to worry about whether sample sizes are equal and we can proceed with the ANOVA test. The `aov` function is called the same way it has been previously, with updates the same as those explained for the `summaryBy` function.
+
+```{r}
+s_anova <- aov(Electronics_Sales ~ Region + Gender + Region:Gender, data = salesdata)
+summary(s_anova)
+```
+
+The above call to `aov` can actually be simplified by using R's * syntax, which indicates we want to consider region, gender and their interaction.
+
+```{r}
+s_anova2 <- aov(Electronics_Sales ~ Region * Gender, data = salesdata)
+summary(s_anova2)
+```
+
+The results show that both main effects, Region and Gender, are highly statistically significant, while their interaction is not. We can further confirm this through an interaction plot, visualising how the two factors behave together.
+
+```{r}
+with(salesdata, {
+  interaction.plot(Region, Gender, Electronics_Sales, fixed = TRUE)
+})
+```
+
+**Q.** Use the `interaction.plot` documentation (`?interaction.plot` in your console) to improve the above visualisation. Change the colour of the lines and draw a box around the legend, as well as whatever other changes you would like to make.
+
+The interaction plot shows the different means for each group formed by the combinations of genders and regions. Means for males and for females are connected across regions. The inreaction plot confirms that while there are significant main effects for gender and region, there is no significant interaction. Means for females are lower than for males in all regions, by a similar amount.
+
+Yet another way
+
+My notes
