@@ -135,8 +135,72 @@ with(salesdata, {
 
 **Q.** Use the `interaction.plot` documentation (`?interaction.plot` in your console) to improve the above visualisation. Change the colour of the lines and draw a box around the legend, as well as whatever other changes you would like to make.
 
-The interaction plot shows the different means for each group formed by the combinations of genders and regions. Means for males and for females are connected across regions. The inreaction plot confirms that while there are significant main effects for gender and region, there is no significant interaction. Means for females are lower than for males in all regions, by a similar amount.
+The interaction plot shows the different means for each group formed by the combinations of genders and regions. Means for males and for females are connected across regions. The interaction plot confirms that while there are significant main effects for gender and region, there is no significant interaction. Means for females are lower than for males in all regions, by a similar amount.
 
-Yet another way
+Yet another way to visualise interactions is through barplots. We can look at gender broken down by region to see that there is a similar pattern for both genders. The easiest way to aggregate the data for these barplots is again by simply updating the expression used in the `aggregate` function. Then we can split the data by whichever factor is required.
+
+```{r}
+mean_and_se <- aggregate(Electronics_Sales ~ Region + Gender, 
+                         salesdata, 
+                         function(x) c(mean = mean(x), se = var(x)/length(x)))
+
+mean_and_se
+```
+
+```{r}
+f_mse <- mean_and_se[which(mean_and_se$Gender == "Female"),]
+m_mse <- mean_and_se[which(mean_and_se$Gender == "Male"),]
+
+p3 <- ggplot(data = f_mse,
+             aes(x = Region, y = Electronics_Sales[, 1])) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  ylab("Mean Electronics Sales ($") +
+  ggtitle("Female")
+
+p4 <- ggplot(data = m_mse,
+             aes(x = Region, y = Electronics_Sales[, 1])) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  ylab("Mean Electronics Sales ($") +
+  ggtitle("Male")
+
+p3 + p4 + plot_layout(widths = unit(c(5, 4), c("cm", "cm")))
+```
+
+We can see from the barplot that there are very similar patterns for the four regions across both genders. Between the ANOVA results, the interaction plots and the barplots, we can conclude that the interaction between Gender and Region does not have a significant effect on Electronics Sales.
+
+**Q.** Can you add error bars to these two plots?
+
+To look at the opposite relationship, that is where each plot would represent a region, with gender along the x-axis and mean electronic sales on the y-axis, we could create 4 plots using the patchwork design. That would feel a bit unnecessarily tedious. Instead, we can pass the `fill` argument to `ggplot` to fill bars with colour according to Gender.
+
+```{r}
+ggplot(data = mean_and_se,
+       aes(x = Region, y = Electronics_Sales[, 1], fill = factor(Gender))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  xlab("Region") +
+  ylab("Mean Electronics Sales ($)")
+```
+
+Again, we can see that across all four regions there is a similar pattern among genders.
+
+**Q.** Can you add error bars to the previous plot?
+
+Finally, Tukey's test should again be run as a post-hoc test. In the below output there are many lines explaining the results for interaction terms. However, recall that the interaction was not statistically significant, so these lines should be ignored.
+
+```{r}
+tukey.test <- TukeyHSD(s_anova2)
+tukey.test
+```
+
+As was the case with music sales in the previous practical, we can see that there is a significant difference between every pair of region means except for the South and North. This Tukey test also tells us that there is a significant difference between the two genders.
+
+**Q.** Is it appropriate to run the same factorial ANOVA test as above using music sales? Why / Why not? Provide evidence using the data.
+
+**Have a go on your own**
+
+There is another .csv file provided with this practical, called *hsb2.csv*. This data file contains 200 observations from a sample of high school students with demographic information about the students, such as their gender (female), socio-economic status (ses) and ethnic background (race). It also contains a number of scores (out of 100) on standardized tests, including tests of reading (read), writing (write), mathematics (math) and social studies (socst).
+
+**Q.** Perform all necessary checks of the data and perform a factorial ANOVA test to determine whether there is a statistically significant difference in average writing scores by gender and socio-economic status. Include tests for interaction. Include interaction and barplots. Interpret the results.
+
+
 
 My notes
