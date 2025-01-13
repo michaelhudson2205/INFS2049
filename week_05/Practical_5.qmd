@@ -1,0 +1,41 @@
+---
+title: "Practical_5"
+format: html
+---
+
+## INFS 2049 Experimental Design
+
+### Joshua Chopin
+
+### 2025-01-11
+
+**(Student: Michael Hudson)**
+
+<hr/>
+
+In this weel's practical we will be analysing block designs. The most straight-forward and common block design to implement and analyse is the Randomized Complete Block Design (RCBD for short). The sales satraset that we are, hopefully, now very familiar with provides a great illustration of how RCBD's can be useful.
+
+Recall that in our first use of the sales dataset we considered mean differences in music sales across the four major regions; North, South, East and West. In the previous practical we considered gender as a second factor and considered its interaction with region in predicting electronics sales. Another way to consider gender is to treat it as a blocking factor when designing the experiment, rather than analysing its effect afterwards. You will see when we get to implementation, that you can think of an RCBD as a two-way ANOVA without the interaction term.
+
+There are two, and only two, possible hypothesis tests in an RCBD:
+
+1. The means of all treatments are equal
+2. The means of all blocks are equal
+
+In general we are only interested in the means of treatments. If the means of blocks are equal then blocking has been a waster effort. With that being said, blocking when you do not need to normally does not cost you anything. Alternatively, failing to block when you should means you may miss some treatment effects. All the more reason to be using the first hypothesis test. In our case, this is the hypothesis that means of electronics sales are equal across the four regions.
+
+An RCBD works best when we have a balanced design, that is, an equal sample size for the factors and blocks. Using gender for blocks and region as factor, the data is not balanced, as you can see below.
+
+```{r}
+library(tidyverse)
+library(doBy)
+```
+
+```{r}
+salesdata <- read_csv("sales.csv")
+sB <- summaryBy(Electronics_Sales ~ Region + Gender + Region:Gender, 
+                data = salesdata, 
+                FUN = length)
+sB
+```
+
