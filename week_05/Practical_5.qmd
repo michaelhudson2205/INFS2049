@@ -39,3 +39,94 @@ sB <- summaryBy(Electronics_Sales ~ Region + Gender + Region:Gender,
 sB
 ```
 
+**Generating a dataset**
+
+We're sticking with the sales dataset to see how blocking results could look using the same data. In the analysis that follows later we can imagine that the balanced data (balanced thanks to some sneaky pre-processing) comes from a well thought out and meticulously designed RCBD. But before we get to that analysis, I'll walk you through the 'sneaky' pre-processing for a bit of extra R programming practice.
+
+We can see from the `summaryBy` table that the smallest sample size we have for a block-factor combination is 14 for males from the east region. To make our design balanced we'll randomly sample 14 observations from each cell. Lets quickly run through what the code is doing here. First an empty list called `new_inds` is initialised, this will be filled with the locations of observations in the original dataframe that will be used in the new, smaller, dataframe. We also set the seed used for random sampling so that the results will be reproducible. We loop through all 8 combinations of Region and Gender, finding which rows in the original dataframe correspond to each. The variable `s` then chooses 14 of those locations randomly and we append them to `new_inds`. Finally, we create a new dataframe, `df.sales` that keeps only those rows that result in a balanced design.
+
+```{r}
+new_inds <- c()
+set.seed(20)
+for (i in 1:8) {
+  w <- which(salesdata$Region == sB$Region[i] & salesdata$Gender == sB$Gender[i])
+  s <- sample(c(1:length(w)), size = 14, replace = F)
+  new_inds <- c(new_inds, w[s])
+}
+df.sales <- salesdata[new_inds,]
+df.sales$Advertising <- as.factor(df.sales$Advertising)
+df.sales$Region <- as.factor(df.sales$Region)
+```
+
+And we can check that we now have a balanced design by once again using the `summaryBy` function.
+
+```{r}
+sB2 <- summaryBy(Electronics_Sales ~ Region + Gender + Region:Gender,
+                 data = df.sales,
+                 FUN = length)
+sB2
+```
+
+**RCBDs in R**
+
+It was stated previously that the anova for an RCBD is analagous to a two-way anova without an interaction term. In R we call the function in exactly the same way -
+
+```{r}
+av <- aov(Electronics_Sales ~ Region + Gender, data = df.sales)
+summary(av)
+```
+
+The results show that both the treatment and the blocking factor, region and gender, respectively, were highly statistically significant. Next we can run Tukey's test -
+
+```{r}
+tukey.test <- TukeyHSD(av)
+tukey.test
+```
+
+If we compare these results to those from the previous practical, most of the pairs of regions maintain approximately the same p-values. The exception is West-East, where blocking by gender has caused the p value to increase from 0.025 to 0.055, going from statistically significant, to just not statistically significant.
+
+Recall that in Practical 3 we adjusted the initial one-way ANOVA test by specifying new contrasts that looked at music sales in the North v South regions, and the East and North regions combined, compared to the South and West regions combined. Here is the code we used to make those contrasts -
+
+```{r}
+con <- matrix(c(0, -1, 1, 0, -1, -1, 1, 1), 4, 2)
+L <- t(con)
+rownames(L) <- c(" - North v South", " - E&N v S&W")
+L
+```
+
+and it can be fitted to the ANOVA model that we made using our block design, the same way that it was used for the one-way ANOVA. We just need to load the `gmodels` package first.
+
+```{r}
+# install.packages("gmodels")
+library(gmodels)
+```
+
+```{r}
+fit.contrast(av, "Region", L)
+```
+
+We can see that this time there were not significant differences for either test.
+
+**Factorial designs**
+
+Blocking can easily be further extended to consider factorial designs.
+
+```{r}
+av2 <- aov(Electronics_Sales ~ Region * Advertising + Gender,
+           data = df.sales)
+summary(av2)
+```
+
+We can see that all the main effects of Region, Advertising and Gender are highly statistically significant, while the interaction between Region and Advertising is not. Furthermore, we can make an interaction plot of this result.
+
+```{r}
+with(salesdata,
+     {interaction.plot(Advertising, Region, Electronics_Sales, fixed = TRUE)})
+```
+
+The interaction plot confirms that there are significant main effects for advertising and region, but overall there is not much of an interaction, besides the interaction between North and South. We can once again run Tukey's (the brackets around each command simply prints their output), but since the interaction term wasn't significant we will just look at the output for Region and Advertising -
+
+```{r}
+(tukey.test2 <- TukeyHSD(av2, "Region"))
+```
+
