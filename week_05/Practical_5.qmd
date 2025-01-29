@@ -19,8 +19,8 @@ Recall that in our first use of the sales dataset we considered mean differences
 
 There are two, and only two, possible hypothesis tests in an RCBD:
 
-1. The means of all treatments are equal
-2. The means of all blocks are equal
+1.  The means of all treatments are equal
+2.  The means of all blocks are equal
 
 In general we are only interested in the means of treatments. If the means of blocks are equal then blocking has been a waster effort. With that being said, blocking when you do not need to normally does not cost you anything. Alternatively, failing to block when you should means you may miss some treatment effects. All the more reason to be using the first hypothesis test. In our case, this is the hypothesis that means of electronics sales are equal across the four regions.
 
@@ -130,3 +130,98 @@ The interaction plot confirms that there are significant main effects for advert
 (tukey.test2 <- TukeyHSD(av2, "Region"))
 ```
 
+```{r}
+(tukey.test3 <- TukeyHSD(av2, "Advertising"))
+```
+
+**Q.** What conclusions would you make based on the results of these Tukey tests?
+
+**Latin Square Designs**
+
+The last design we will look at in this practical are Latin squares. Latin squares are designed so that all treatments appear only once in each row and each column. The code below generates a new dataset. Let us say some football players are trialling different techniques and different diet regimes, to see the impact they have on goals kicked in a season. The dataframe below, `lsd.df` represents the results of an experiment with five different training techniques, five different diet regimes and five different players, named A through E for anonymity's sake. The goals variable records how many goals were kicked by each player for each diet/training combination.
+
+```{r}
+training <- c(rep("train1", 1), 
+              rep("train2", 1), 
+              rep("train3", 1), 
+              rep("train4", 1), 
+              rep("train5", 1))
+diet <- c(rep("diet1", 5),
+          rep("diet2", 5),
+          rep("diet3", 5),
+          rep("diet4", 5),
+          rep("diet5", 5))
+player <- c("A", "E", "C", "B", "D",
+            "C", "B", "A", "D", "E",
+            "B", "C", "D", "E", "A",
+            "D", "A", "E", "C", "B",
+            "E", "D", "B", "A", "C")
+goals <- c(42, 45, 41, 56, 47,
+           47, 54, 46, 52, 49,
+           55, 52, 57, 49, 45,
+           51, 44, 47, 50, 54,
+           44, 50, 48, 43, 46)
+
+lsd.df <- data.frame(training, diet, player, goals)
+lsd.df$training <- as.factor(lsd.df$training)
+lsd.df$diet <- as.factor(lsd.df$diet)
+lsd.df$player <- as.factor(lsd.df$player)
+```
+
+**Q.** What are two other factors that could influence the results of this experiment?
+
+[This answer is written in blue]{style="color:blue;"}
+
+<span style="color:green;">This answer is written in green</span>
+
+First, as is protocol, we should summarise the data. We will use a boxplot.
+
+```{r}
+plot(goals ~ training + diet + player, lsd.df)
+```
+
+A lot of information can be gathered from the series of three boxplots. For instance, there appears to be a significant difference in goals kicked between players, with Player B clearly being the best goal kicker.
+
+**Q.** What other information can be gained by looking at the boxplots?
+
+Running an ANOVA for our Latin square design probably looks just as you would expect it to (note that there should not be any interactions occurring in an LSD).
+
+```{r}
+lsd.aov <- aov(goals ~ training + diet + player, data = lsd.df)
+summary(lsd.aov)
+```
+
+The results show that while training has no significant effect on goals kicked, both the choice of diet and the player do have an effect. More specifically, the difference between players is highly statistically significant, implying that while the different training techniques didn't matter much and the different diet regimes mattered a little, the most important factor was the skill of the player themselves.
+
+Finally, let us see how R uses the `design.lsd` function to create your own lsd. In the previous example we manually provided the dataframe to be used for analysis, but `design.lsd` can actually handle that for us. We won't go through the pain and suffering of creating a new dataset again, but let us imagine we had a variant of the sales data that was constructed as a Latin square design. Sales could come in the form of electronics, music, books or toys. The four regions could still be of interest and perhaps now there is four distinct advertising strategies.
+
+```{r}
+library(agricolae)
+sales <- c("Electronics", "Music", "Books", "Toys")
+outdesign <- design.lsd(sales, seed = 23)
+lsd <- outdesign$book
+levels(lsd$row) <- c("North", "South", "East", "West")
+levels(lsd$col) <- c("Advertising 1", "Advertising 2", "Advertising 3", "Advertising 4")
+print(outdesign$sketch)
+```
+
+```{r}
+head(lsd)
+```
+
+```{r}
+plots <- as.numeric(lsd[, 1])
+print(matrix(plots, byrow = TRUE, ncol = 4))
+```
+
+**Have a go on your own**
+
+**Q.** Near the beginning of the practical we randomly sampled from the dataset to synthetically generate a new dataset that had a balanced RCB design. If you ran this in your own console without setting a seed you would have *almost* certainly seen results different to those shown in this practical. Try removing the `set.seed` line and running the loop that randomly samples from the data a few times, running the anova test that follows each time. Do the results ever change in terms of significance level? Can this tell us anything about the original dataset?
+
+**Q.** Create a new version of the L variable with two different contrasts, then use the `fit.contrast` function to interpret their significance.
+
+**Q.** Find all feasible 5x5 Latin square designs for the incomplete design below.
+
+**Q.** Create your own experiment. Similarly to when we imagined that players' goal kicking depended on training and diet, formulate your own set of variables and response. Then, design a suitable Latin square design using the `design.lsd` function.
+
+**Q.** Using the design you just made, generate a vector of random values within a range you think is appropriate, and append them to `lsd`. Create the appropriate boxplots to visualise the data, then perform the anova test.
