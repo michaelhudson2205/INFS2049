@@ -1,0 +1,231 @@
+---
+title: "Practical_6"
+format: html
+---
+
+## INFS 2049 Experimental Design
+
+### Joshua Chopin
+
+### 2025-01-30
+
+**(Student: Michael Hudson)**
+
+<hr/>
+
+As the name suggests, the repeated measures ANOVA is used to analyse experiemnts where the same subjects record repeated responses. You might also hear it referred to as a 'within-subjects ANOVA' or 'ANOVA with repeated measures'. The data we will be using this week relates to exercise, with the intention to investigate how running effects your pulse. It is a new dataset, so we finally get to do some initial data exploration again.
+
+Just quickly, before proceeding, please load in the `rstatix` package as it will be used multiple times throughout this prac.
+
+```{r}
+#install.packages("rstatix")
+library(rstatix)
+library(tidyverse)
+```
+
+```{r}
+exercisedata <- read_csv("exercise.csv")
+head(exercisedata)
+```
+
+```{r}
+summary(exercisedata)
+```
+
+**Data exploration**
+
+From the summary we can see that our subjects range in age from 19 to 84 years old, with the average around 51 years old. It also looks like the resting pulse is much lower than the two treatments, with max pulse being slightly higher than running pulse. As always, it will probably be easier to get a good overall understanding of this dataset using some visualisations.
+
+```{r}
+boxplot(x = as.list(exercisedata[, 3:5]))
+```
+
+As expected, values for max_pulse and run_pulse appear much higher than those of rest_pulse. There is one point in run_pulse considered to be an outlier, but it is the only one and it is not egregiously far away from the rest of the data. One potentially concerning aspect of the boxplots is that none of the factors appear to have very symmetric data, which may have implications on the normality assumption. This seems like a perfect time to start checking all the necessary assumptions.
+
+**Testing assumptions**
+
+We already created some boxplots to check for significant outliers, but we can take a more quantitative approach using the `identify_outliers` function from the `rstatix` package.
+
+```{r}
+exercisedata |> 
+  identify_outliers(Run_Pulse)
+```
+
+The results show that, as we expected, there was an outlier detected, identified here as subject 37. However, the results show that the outlier is not extreme. Given that there is only one outlier, and it doesn't qualify as extreme, we shall proceed as usual.
+
+The other assumption we already flagged from the boxplots was the assumption of normality. We can begin testing this assumption by using the Shapiro-Wilks method.
+
+```{r}
+shapiro.test(exercisedata$Rest_Pulse)
+```
+
+```{r}
+shapiro.test(exercisedata$Run_Pulse)
+```
+
+```{r}
+shapiro.test(exercisedata$Max_Pulse)
+```
+
+We can see that in all cases the p-value is greater than 0.05, implying that all variables are normally distributed.
+
+The final assumption to test should be sphericity. Normally we would do this using Mauchly's test of Sphericity. Remember the `rstatix` package we loaded earlier? It provides a pipe-friendly framework for performing different types of ANOVA tests, such as, you guessed it, repeated measures. It turns out, the `anova_test` function from `rstatix` automatically reports the results of Mauchly's test of sphericity and then automatically applies the Greenhouse-Geisser correction if the sphericity assumption is violated. We are not tied to Greenhouse-Geisser, but we will get to that soon.
+
+**Data analysis**
+
+The `anova_test` function is called a little differently to our regularly used `aov` function. We still need to specify the dataset, but after that `dv` is used to refer to the dependent variable, that is pulse in our case, `wid` is used to refer to our run number or subject identifier etc., and `within` is used to refer to the within-subject variable, in our case it is the level of exercise. However, our data currently isn't set up to accommodate this function, since the three different levels of exercise (rest, run and max) are in separate columns. We will need to make a new column which we will treat as the 'degree' of exercise.
+
+```{r}
+exercisedata2 <- exercisedata |> 
+  pivot_longer(cols = c(Rest_Pulse, Max_Pulse, Run_Pulse),
+               names_to = "degree",
+               values_to = "pulse") |> 
+  convert_as_factor(Subj, degree)
+
+head(exercisedata2)
+```
+
+Now we are ready to run the `anova_test` function as described -
+
+```{r}
+myaov <- anova_test(data = exercisedata2,
+                    dv = pulse,
+                    wid = Subj,
+                    within = degree)
+myaov
+```
+
+We will do a top-down interpretation of these results. First, the results of the ANOVA test show that the incredibly small p-value indicates that the degree of exercise does have a significant effect on pulse. The next output is Mauchly's Test for Sphericity, the assumption that we needed to check earlier but skipped since it is being calculated automatically here. Once again the p-value is much less than 0.05 and we can conclude that the assumption of sphericity has been violated. Therefore corrections were necessary, the Greenhouse-Geisser (GG) and Hyunh-Feldt (HF) corrections are provided in the final part of the output. By default the function will automatically apply the GG correction if the assumption is violated. If we want it to apply the HF instead, we simply specify this in the original call to the function.
+
+A final note on the `anova_test` function is that it can also be used to conduct mixed ANOVAs. That is, an ANOVA test where you have both within and between-subject factors. In that case you can simply add another argument called `between` and specify the between-subject factor.
+
+To look at pair-wise t-tests of our within subjects factor, the degree of exercise, we can not readily use the `TukeyHSD` function, as it relies on the output of the regular `aov` function and not our fancy new `anova_test`. Instead we can use a pairwise t-test -
+
+```{r}
+pairwise_t_test(data = exercisedata2,
+                pulse ~ degree,
+                paired = TRUE)
+```
+
+which shows that all pairs of exercise degrees are significantly different. When doing multiple t-tests this way it can be a good idea to use Bonferroni's correction, but we will see that in this case -
+
+```{r}
+pairwise_t_test(data = exercisedata2,
+                pulse ~ degree,
+                paired = TRUE,
+                p.adjust.method = "bonferroni")
+```
+
+the result doesn't change.
+
+**Two-way repeated measures**
+
+Now let's imagine there was another variable in our dataset. It represents a treatment, say a special supplement that could be taken by the participants that should help decrease heart rate. We might wish to measure whether the interaction between degree of exercise and supplement has an effect on pulse. You will be let in on the artificial data creation process in the next few paragraphs, but as for analysis, assume the data is real.
+
+We need to create the new variable `supp`. I want it to have pulse values with the same standard deviation as previous but with slightly lower mean. Due to the three different degrees of exercise having different pulse distributions, we will need to create three sets of random pulse values and concatenate them.
+
+```{r}
+mean(exercisedata2$pulse[exercisedata2$degree == "Rest_Pulse"])
+```
+
+```{r}
+sd(exercisedata2$pulse[exercisedata2$degree == "Rest_Pulse"])
+```
+
+```{r}
+mean(exercisedata2$pulse[exercisedata2$degree == "Max_Pulse"])
+```
+
+```{r}
+sd(exercisedata2$pulse[exercisedata2$degree == "Max_Pulse"])
+```
+
+```{r}
+mean(exercisedata2$pulse[exercisedata2$degree == "Run_Pulse"])
+```
+
+```{r}
+sd(exercisedata2$pulse[exercisedata2$degree == "Run_Pulse"])
+```
+
+It looks like the standard deviation is never too far away from 9.5, so we will use that for all of our new data. The `rnorm` function is used to create a vector of random values sampled from the normal distribution. We will make a vector for values with the supplement, and consider the existing data to not have the supplement.
+
+```{r}
+r1 <- rnorm(50, mean = 57.9, sd = 9.5)
+r2 <- rnorm(50, mean = 105.44, sd = 9.5)
+r3 <- rnorm(50, mean = 102.92, sd = 9.5)
+R <- c(r1, r2, r3)
+```
+
+Now we can add this information to the dataset. The `exercisedata2` dataframe needs to be twice as long now, to accommodate for the new factor.
+
+```{r}
+exercisedata2 <- rbind(exercisedata2, exercisedata2)
+```
+
+A column should be added to represent whether the supplement has been taken or not.
+
+```{r}
+exercisedata2$supp <- c(rep("ctr", 150), rep("supp", 150))
+```
+
+Then we need to add the new pulse value to where the supplement was used.
+
+```{r}
+exercisedata2$pulse[151:300] <- round(R)
+```
+
+To check that pulse is lower for supplemented people as we intended, we can visualise those differences with some nice boxplots from the `ggpubr` package.
+
+```{r}
+#install.packages("ggpubr")
+library(ggpubr)
+```
+
+```{r}
+ggboxplot(data = exercisedata2,
+          x = "degree",
+          y = "pulse",
+          color = "supp")
+```
+
+Looks good! Remember though that we are only partly interested in whether or not there is a significant difference in pulse between supplements, we really want to know if there is an **interaction** with supplement. To run the test we once again use the `anova_test` function, we just provide both `degree` and `supp` as within-subject factors this time.
+
+```{r}
+exercisedata2 <- exercisedata2 |> 
+  convert_as_factor(supp)
+myaov2 <- anova_test(data = exercisedata2, dv = pulse, wid = Subj, within = c(degree, supp))
+myaov2
+```
+
+**Q.** What do the results say about the significance of the main and interaction effects?
+
+**Q.** What do the results say about the assumption of sphericity?
+
+**Have a go on your own**
+
+The `datarium` package contains a dataset called `selfesteem` which measures subject's self-esteem at different times of the day. It can be called with the below commands.
+
+```{r}
+#install.packages("datarium")
+library(datarium)
+```
+
+```{r}
+data("selfesteem", package = "datarium")
+force(selfesteem)
+```
+
+```{r}
+summary(selfesteem)
+```
+
+You will see that the first column is the subject's id, with the following three columns referring to three different times of the day, and their values referring to a self-esteem score.
+
+**Q.** Perform initial data exploration, including visualisations, and report your initial insights about the dataset.
+
+**Q.** Perform checks on all necessary assumptions for a repeated measures ANOVA.
+
+**Q.** Perform and interpret the one-way repeated measures ANOVA.
+
+**Q.** Perform any required post-hoc tests and interpret the results.
