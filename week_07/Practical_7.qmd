@@ -1,0 +1,20 @@
+---
+title: "Practical_7"
+format: html
+---
+
+## INFS 2049 Experimental Design
+
+### Joshua Chopin
+
+### 2025-01-33
+
+**(Student: Michael Hudson)**
+
+<hr/>
+
+In this practical we will by analysing $2^{k}$ factorial experiments. These are a special subcategory of factorial experiments where each of the *k* factors have only two levels. The experiment is still considered full factorial i.e., run across all possible combinations of factor levels.
+
+**Q.** If we were to consider a $2^{3}$ factorial design with two replicates, how many runs will there be of the experiment in total? What about the same design with 10 replicates?
+
+The data we will be using in today's practical comes from an experiment in 'Statistics for experimenters' a textbook by Box, Hunter and Hunter (Box & Hunter^2^ for short). The design is a $2^{3}$ factorial to study the effect of temperature (T), concentration (C) and catalyst (K) on yield (y). Temperature (measured in degrees celsius) has two levels: 160°C and 180°C.
