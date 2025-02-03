@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -102,7 +136,396 @@ window.Quarto = {
 <hr>
 <p>In this practical we will by analysing <span class="math inline">\(2^{k}\)</span> factorial experiments. These are a special subcategory of factorial experiments where each of the <em>k</em> factors have only two levels. The experiment is still considered full factorial i.e., run across all possible combinations of factor levels.</p>
 <p><strong>Q.</strong> If we were to consider a <span class="math inline">\(2^{3}\)</span> factorial design with two replicates, how many runs will there be of the experiment in total? What about the same design with 10 replicates?</p>
-<p>The data we will be using in today’s practical comes from an experiment in ‘Statistics for experimenters’ a textbook by Box, Hunter and Hunter (Box &amp; Hunter<sup>2</sup> for short). The design is a <span class="math inline">\(2^{3}\)</span> factorial to study the effect of temperature (T), concentration (C) and catalyst (K) on yield (y). Temperature (measured in degrees celsius) has two levels: 160°C and 180°C.</p>
+<p>The data we will be using in today’s practical comes from an experiment in ‘Statistics for experimenters’ a textbook by Box, Hunter and Hunter (Box &amp; Hunter<sup>2</sup> for short). The design is a <span class="math inline">\(2^{3}\)</span> factorial to study the effect of temperature (T), concentration (C) and catalyst (K) on yield (y). Temperature (measured in degrees celsius) has two levels: 160°C and 180°C. Concentration (%) has two levels: 20 and 40. Catalyst has two levels: A and B. All factors have their first level coded -1 and their second level coded +1. A fair question would be, concentration of what? Or what are the catalysts? Or the yield of what? Your guesses are as good as mine, the textbook doesn’t say. Fortunately one of the beauties of statistics is that the answers don’t matter, they don’t change the correctness of our analysis.</p>
+<p><strong>Q.</strong> Of the three factors, which are quantitative and which are qualitative?</p>
+<p><strong>Data exploration</strong></p>
+<p>The first dataset we will use is saved in the <em>boxhunter1.csv</em> file, load it in and do some initial exploration. Note, the yield values provided in the dataset have been averaged over two runs.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vroom)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'vroom'
+
+The following objects are masked from 'package:readr':
+
+    as.col_spec, col_character, col_date, col_datetime, col_double,
+    col_factor, col_guess, col_integer, col_logical, col_number,
+    col_skip, col_time, cols, cols_condense, cols_only, date_names,
+    date_names_lang, date_names_langs, default_locale, fwf_cols,
+    fwf_empty, fwf_positions, fwf_widths, locale, output_column,
+    problems, spec</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(FrF2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'FrF2' was built under R version 4.4.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: DoE.base</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'DoE.base' was built under R version 4.4.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: grid
+Loading required package: conf.design
+Registered S3 method overwritten by 'DoE.base':
+  method           from       
+  factorize.factor conf.design
+
+Attaching package: 'DoE.base'
+
+The following objects are masked from 'package:stats':
+
+    aov, lm
+
+The following object is masked from 'package:graphics':
+
+    plot.design
+
+The following object is masked from 'package:base':
+
+    lengths</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>boxhunter <span class="ot">&lt;-</span> <span class="fu">vroom</span>(<span class="st">"boxhunter1.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 8 Columns: 5
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+dbl (5): Run, T, C, K, y
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(boxhunter)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 5
+    Run     T     C     K     y
+  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1     1    -1    -1    -1    60
+2     2     1    -1    -1    72
+3     3    -1     1    -1    54
+4     4     1     1    -1    68
+5     5    -1    -1     1    52
+6     6     1    -1     1    83</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(boxhunter)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      Run             T            C            K            y        
+ Min.   :1.00   Min.   :-1   Min.   :-1   Min.   :-1   Min.   :45.00  
+ 1st Qu.:2.75   1st Qu.:-1   1st Qu.:-1   1st Qu.:-1   1st Qu.:53.50  
+ Median :4.50   Median : 0   Median : 0   Median : 0   Median :64.00  
+ Mean   :4.50   Mean   : 0   Mean   : 0   Mean   : 0   Mean   :64.25  
+ 3rd Qu.:6.25   3rd Qu.: 1   3rd Qu.: 1   3rd Qu.: 1   3rd Qu.:74.00  
+ Max.   :8.00   Max.   : 1   Max.   : 1   Max.   : 1   Max.   :83.00  </code></pre>
+</div>
+</div>
+<p><strong>Q.</strong> Using the head of the data, can you identify a potential flaw in this experimental design?</p>
+<p>We can see that T, C and K values in each run give us the unique combination of factor levels being tested. For instance, in Run 1 the temperature is 160°C, the concentration is 20 and the catalyst is A, which gave a yield of 60. Note that the summary command we are used to using isn’t very helpful for all of the variables in the dataset except for yield. As all of our factors have two levels and are coded to -1 and +1, they don’t provide any information here. We can, however, use a boxplot to get a feel for the yield.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">2</span>))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(boxhunter<span class="sc">$</span>y, <span class="at">ylab =</span> <span class="st">"yield"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Practical_7_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can see that the average yield is around 65 (64.25 to be exact, using the earlier summary), the data appears fairly normally distributed and there are no outliers. We can further use boxplots to gain some insight into the effect the different factors have on yield.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(boxhunter<span class="sc">$</span>y <span class="sc">~</span> boxhunter<span class="sc">$</span>T, <span class="at">xlab =</span> <span class="st">"Temperature"</span>, <span class="at">ylab =</span> <span class="st">"yield"</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(boxhunter<span class="sc">$</span>y <span class="sc">~</span> boxhunter<span class="sc">$</span>C, <span class="at">xlab =</span> <span class="st">"Concentration"</span>, <span class="at">ylab =</span> <span class="st">"yield"</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(boxhunter<span class="sc">$</span>y <span class="sc">~</span> boxhunter<span class="sc">$</span>K, <span class="at">xlab =</span> <span class="st">"Catalyst"</span>, <span class="at">ylab =</span> <span class="st">"yield"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Practical_7_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Immediately we can see that temperature probably plays an important role, with the higher temperature of 180°C resulting in higher yield. There doesn’t appear to be much difference between concentrations, though the concentration of 20% has a slightly higher yield. Both catalysts result in similar yield values, though catalyst B has a much larger spread.</p>
+<p>There is a type of visualisation we haven’t used yet in this course that is especially helpful for <span class="math inline">\(2^{3}\)</span> factorial designs, it is called a cube plot. To create one we will use the <code>cubePlot</code> function from the <code>FrF2</code> package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>mylm <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> T <span class="sc">*</span> C <span class="sc">*</span> K, <span class="at">data =</span> boxhunter)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cubePlot</span>(mylm, <span class="st">"T"</span>, <span class="st">"K"</span>, <span class="st">"C"</span>, <span class="at">main =</span> <span class="st">"Cube plot for data exploration"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Practical_7_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Q.</strong> Before reading on, have a look at the cube plot and the dataset together. Can you figure out what it is showing us?</p>
+<p>Each axis here refers to a factor, either T, C or K. The values along the axes only take values of -1 or +1, like our factors. The bottom left corner of the plot, closest to the viewer, has a value of -1 for C, -1 for T and -1 for K, with a blue 60 in the corner’s circle to indicate yield. The cube plot helps us to unpack the data from all factors all at once. For instance the largest two yield values are in the back right corner, where T = 1 for both, and the smallest values are in the back left corner, where T = -1. This agrees with our hypothesis from the boxplots that temperature has an effect on yield. There are two more yield values when T = 1 though, those at the front right, and although still large, they are not as large as the back right, indicating that catalyst B might be better than A. Recall from the boxplot that the means for each catalyst looked pretty similar - perhaps there is an interaction with temperature.</p>
+<p><strong>Q.</strong> Sketch out the 2D equivalent of a cube plot in the case that the catalyst factor did not exist.</p>
+<p>Before moving on, we can quickly create some interaction plots to further investigate what we just noticed.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">interaction.plot</span>(boxhunter<span class="sc">$</span>T, </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>                 boxhunter<span class="sc">$</span>K, </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>                 boxhunter<span class="sc">$</span>y, </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">xlab =</span> <span class="st">"Temperature"</span>, </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">trace.label =</span> <span class="st">"Catalyst"</span>, </span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ylab =</span> <span class="st">"Mean yield"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Practical_7_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>It looks like we should definitely find a significant interaction between catalyst and temperature. What about the other factors?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="fl">3.5</span>, <span class="dv">4</span>, <span class="fl">2.5</span>, <span class="dv">5</span>), <span class="at">mgp =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">interaction.plot</span>(boxhunter<span class="sc">$</span>T, </span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>                 boxhunter<span class="sc">$</span>C, </span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>                 boxhunter<span class="sc">$</span>y, </span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">xlab =</span> <span class="st">"Temperature"</span>, </span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">trace.label =</span> <span class="st">"Concentration"</span>, </span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ylab =</span> <span class="st">"Mean yield"</span>)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="fu">interaction.plot</span>(boxhunter<span class="sc">$</span>C, </span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>                 boxhunter<span class="sc">$</span>K, </span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>                 boxhunter<span class="sc">$</span>y, </span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>                 <span class="at">xlab =</span> <span class="st">"Concentration"</span>, </span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>                 <span class="at">trace.label =</span> <span class="st">"Catalyst"</span>, </span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ylab =</span> <span class="st">"Mean yield"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Practical_7_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The lines for concentration vs catalyst appear almost perfectly parallel, so there is not much chance for interaction there. Temperature vs concentration is fairly parallel but not to the same extent. A Tukey test later on will give us definitive answers on these relationships.</p>
+<p><strong>Analysing the experiment</strong></p>
+<p>Now that we have a feel for the dataset and have ruled out any potential outliers we can run the ANOVA test. When we call <code>aov</code> with the syntax below, using the <span class="math inline">\(-^{2}\)</span>, we get all regular interaction terms without considering higher order ones, such as T:C:K.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>boxhunter<span class="sc">$</span>T <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(boxhunter<span class="sc">$</span>T)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>boxhunter<span class="sc">$</span>C <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(boxhunter<span class="sc">$</span>C)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>boxhunter<span class="sc">$</span>K <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(boxhunter<span class="sc">$</span>K)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>myaov <span class="ot">&lt;-</span> <span class="fu">aov</span>(y <span class="sc">~</span> (T <span class="sc">+</span> C <span class="sc">+</span> K)<span class="sc">^</span><span class="dv">2</span>, <span class="at">data =</span> boxhunter)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(myaov)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Df Sum Sq Mean Sq F value Pr(&gt;F)  
+T            1 1058.0  1058.0    2116 0.0138 *
+C            1   50.0    50.0     100 0.0635 .
+K            1    4.5     4.5       9 0.2048  
+T:C          1    4.5     4.5       9 0.2048  
+T:K          1  200.0   200.0     400 0.0318 *
+C:K          1    0.0     0.0       0 1.0000  
+Residuals    1    0.5     0.5                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>The ANOVA confirms a number of the relationships we had identified during the data exploration stage. Temperature is definitely statistically significant while concentration, that marginally appeared to have a significant effect, just misses out. Furthermore, as we suspected earlier, there is an interaction between temperature and catalyst and it is the only statistically significant interaction.</p>
+<p>Now we need to do some checking of necessary assumptions. We will start with the familiar Shapiro-Wilk.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shapiro.test</span>(boxhunter<span class="sc">$</span>y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  boxhunter$y
+W = 0.954, p-value = 0.7514</code></pre>
+</div>
+</div>
+<p>The p-value is well above the 0.05 threshold, so we can conclude that the data passes the Shapiro-Wilk normality test. There is another important assumption associated with the ordinary least squares that we are using to perform regression, that is, our errors should be uncorrelated with each other. The value of one residual, the distance between the model’s fitted value vs the observed value, should not tell us anything about the values of nearby residuals. To test this we create a residual plot, with fitted values along the <em>x</em>-axis and their associated residual values along the <em>y</em>-axis.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">fitted</span>(myaov), <span class="fu">residuals</span>(myaov))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Practical_7_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>What we are hoping to see in this plot is randomness, that is, no discernable pattern between fitted values and residual values. There does not appear to be much of a pattern here, but it is hard to tell because of the small number of points. Recall from the start of the practical that the yield values in this dataset are actually averaged over two runs. It might be worthwhile to fit a model to the original dataset and investigate those residuals.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>boxhunter2 <span class="ot">&lt;-</span> <span class="fu">vroom</span>(<span class="st">"boxhunter2.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 16 Columns: 5
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+dbl (5): run, T, C, K, y
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>boxhunter2<span class="sc">$</span>T <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(boxhunter2<span class="sc">$</span>T)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>boxhunter2<span class="sc">$</span>C <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(boxhunter2<span class="sc">$</span>C)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>boxhunter2<span class="sc">$</span>K <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(boxhunter2<span class="sc">$</span>K)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>myaov2 <span class="ot">&lt;-</span> <span class="fu">aov</span>(y <span class="sc">~</span> (T <span class="sc">+</span> C <span class="sc">+</span> K)<span class="sc">^</span><span class="dv">2</span>, <span class="at">data =</span> boxhunter2)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(myaov2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Df Sum Sq Mean Sq F value   Pr(&gt;F)    
+T            1   2116  2116.0 292.985 3.57e-08 ***
+C            1    100   100.0  13.846  0.00476 ** 
+K            1      9     9.0   1.246  0.29320    
+T:C          1      9     9.0   1.246  0.29320    
+T:K          1    400   400.0  55.385 3.92e-05 ***
+C:K          1      0     0.0   0.000  1.00000    
+Residuals    9     65     7.2                     
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">fitted</span>(myaov2), <span class="fu">residuals</span>(myaov2))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Practical_7_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>With the increased number of datapoints it is clear that there is no pattern in the residuals, they are randomly distributed about 0. Another visualisation to help confirm normality of the residuals is the normal Q-Q plot.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qqnorm</span>(<span class="fu">residuals</span>(myaov2))</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">qqline</span>(<span class="fu">residuals</span>(myaov2))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Practical_7_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can see from the Q-Q plot that the points form a roughly straight line, further supporting that the data passes the normality assumption. With the necessary checks out of the way, and a new version of the dataset with multiple runs, we can conduct Tukey’s test to understand the interactions of our factors.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>(tukey <span class="ot">&lt;-</span> <span class="fu">TukeyHSD</span>(myaov2, <span class="at">ordered =</span> <span class="cn">FALSE</span>, <span class="at">conf.level =</span> <span class="fl">0.95</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov.default(formula = y ~ (T + C + K)^2, data = boxhunter2)
+
+$T
+     diff      lwr      upr p adj
+1--1   23 19.96032 26.03968     0
+
+$C
+     diff       lwr       upr     p adj
+1--1   -5 -8.039682 -1.960318 0.0047629
+
+$K
+     diff       lwr      upr     p adj
+1--1  1.5 -1.539682 4.539682 0.2932042
+
+$`T:C`
+            diff       lwr         upr     p adj
+1:-1--1:-1  21.5  15.56767  27.4323304 0.0000062
+-1:1--1:-1  -6.5 -12.43233  -0.5676696 0.0319237
+1:1--1:-1   18.0  12.06767  23.9323304 0.0000271
+-1:1-1:-1  -28.0 -33.93233 -22.0676696 0.0000007
+1:1-1:-1    -3.5  -9.43233   2.4323304 0.3159951
+1:1--1:1    24.5  18.56767  30.4323304 0.0000020
+
+$`T:K`
+            diff       lwr       upr     p adj
+1:-1--1:-1  13.0   7.06767  18.93233 0.0003571
+-1:1--1:-1  -8.5 -14.43233  -2.56767 0.0069143
+1:1--1:-1   24.5  18.56767  30.43233 0.0000020
+-1:1-1:-1  -21.5 -27.43233 -15.56767 0.0000062
+1:1-1:-1    11.5   5.56767  17.43233 0.0008881
+1:1--1:1    33.0  27.06767  38.93233 0.0000002
+
+$`C:K`
+           diff         lwr        upr     p adj
+1:-1--1:-1 -5.0 -10.9323304  0.9323304 0.1042979
+-1:1--1:-1  1.5  -4.4323304  7.4323304 0.8575311
+1:1--1:-1  -3.5  -9.4323304  2.4323304 0.3159951
+-1:1-1:-1   6.5   0.5676696 12.4323304 0.0319237
+1:1-1:-1    1.5  -4.4323304  7.4323304 0.8575311
+1:1--1:1   -5.0 -10.9323304  0.9323304 0.1042979</code></pre>
+</div>
+</div>
+<p>The results show that there is certainly a difference between temperature levels and concentration levels, but not the catalyst levels. Almost all of the interactions between levels when comparing temperature vs concentration and temperature vs catalyst are significant. On the other hand, there is only one significant difference between levels when comparing concentration and catalyst. We can visualise these results with confidence level plots.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">2</span>))</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tukey)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Practical_7_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Finally, we should look at the parameter estimates of the linear model. Note the * syntax, rather than +, to indicate that we are interested in all interactions.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>mylm <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> T <span class="sc">*</span> C <span class="sc">*</span> K, <span class="at">data =</span> boxhunter2)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mylm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm.default(formula = y ~ T * C * K, data = boxhunter2)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+ -4.00  -1.25   0.00   1.25   4.00 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)   60.000      2.000  30.000 1.65e-09 ***
+T1            12.000      2.828   4.243  0.00283 ** 
+C1            -6.000      2.828  -2.121  0.06669 .  
+K1            -8.000      2.828  -2.828  0.02220 *  
+T1:C1          2.000      4.000   0.500  0.63054    
+T1:K1         19.000      4.000   4.750  0.00145 ** 
+C1:K1         -1.000      4.000  -0.250  0.80889    
+T1:C1:K1       2.000      5.657   0.354  0.73281    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 2.828 on 8 degrees of freedom
+Multiple R-squared:  0.9763,    Adjusted R-squared:  0.9555 
+F-statistic: 47.05 on 7 and 8 DF,  p-value: 7.071e-06</code></pre>
+</div>
+</div>
+<p>The values in the <code>Estimate</code> column represent the coefficients of the obtained linear model for each of the factors and interactions. If our model is -</p>
+<p><span class="math inline">\(yield = \beta_0 + \beta_1 T + \beta_2 C + \beta_3 K + \beta_4 T:C +\beta_5 T:K + \beta_6 C:K + \beta_7 T:C:K\)</span></p>
+<p>then <span class="math inline">\(\beta_0 = 60\)</span>, <span class="math inline">\(\beta_1 = 12\)</span>, <span class="math inline">\(\beta_2 = -6\)</span> and so on. These <span class="math inline">\(\beta\)</span> coefficients represent the degree of change in yield for every one unit of change in their respective factors. Since our codings take values of -1 and +1, the beta coefficients represent half the expected change across factor levels. i.e.&nbsp;changing temperature from -1 to + 1, that is 160°C to 180°C, should result in a yield increase of 14.</p>
+<p><strong>Have a go on your own</strong></p>
+<p>The provided <code>Concrete_Data.csv</code> is a dataset for investigating the effects that different ingredients have on concrete strength. While there any many ingredients in a good slab on concrete, we are using a subset of the data that contains only three ingredients: Cement, Blast Furnance Slag (BFS) and Fine Aggregate (FA).</p>
+<p><strong>Q.</strong> Make boxplots for each of the factors to visualise the ingredients’ effect on strength.</p>
+<p><strong>Q.</strong> Can you make a cube plot for this experiment? Why/why not?</p>
+<p><strong>Q.</strong> Create the three interaction plots for this experiment. One of the plots will look a little unusual - why is this?</p>
+<p><strong>Q.</strong> Perform and analyse an ANOVA including all first order interactions terms for the data.</p>
+<p><strong>Q.</strong> Create a linear model including first order interactions and interpret the results.</p>
+<p><strong>Q.</strong> Finally, check that all necessary assumptions are satisfied. Interpret the results of the tests - should we have perhaps checked this earlier?</p>
 </section>
 </section>
 

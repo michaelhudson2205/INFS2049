@@ -17,4 +17,188 @@ In this practical we will by analysing $2^{k}$ factorial experiments. These are 
 
 **Q.** If we were to consider a $2^{3}$ factorial design with two replicates, how many runs will there be of the experiment in total? What about the same design with 10 replicates?
 
-The data we will be using in today's practical comes from an experiment in 'Statistics for experimenters' a textbook by Box, Hunter and Hunter (Box & Hunter^2^ for short). The design is a $2^{3}$ factorial to study the effect of temperature (T), concentration (C) and catalyst (K) on yield (y). Temperature (measured in degrees celsius) has two levels: 160°C and 180°C.
+The data we will be using in today's practical comes from an experiment in 'Statistics for experimenters' a textbook by Box, Hunter and Hunter (Box & Hunter^2^ for short). The design is a $2^{3}$ factorial to study the effect of temperature (T), concentration (C) and catalyst (K) on yield (y). Temperature (measured in degrees celsius) has two levels: 160°C and 180°C. Concentration (%) has two levels: 20 and 40. Catalyst has two levels: A and B. All factors have their first level coded -1 and their second level coded +1. A fair question would be, concentration of what? Or what are the catalysts? Or the yield of what? Your guesses are as good as mine, the textbook doesn't say. Fortunately one of the beauties of statistics is that the answers don't matter, they don't change the correctness of our analysis.
+
+**Q.** Of the three factors, which are quantitative and which are qualitative?
+
+**Data exploration**
+
+The first dataset we will use is saved in the *boxhunter1.csv* file, load it in and do some initial exploration. Note, the yield values provided in the dataset have been averaged over two runs.
+
+```{r}
+library(tidyverse)
+library(vroom)
+library(FrF2)
+```
+
+```{r}
+boxhunter <- vroom("boxhunter1.csv")
+head(boxhunter)
+```
+
+```{r}
+summary(boxhunter)
+```
+
+**Q.** Using the head of the data, can you identify a potential flaw in this experimental design?
+
+We can see that T, C and K values in each run give us the unique combination of factor levels being tested. For instance, in Run 1 the temperature is 160°C, the concentration is 20 and the catalyst is A, which gave a yield of 60. Note that the summary command we are used to using isn't very helpful for all of the variables in the dataset except for yield. As all of our factors have two levels and are coded to -1 and +1, they don't provide any information here. We can, however, use a boxplot to get a feel for the yield.
+
+```{r}
+par(mar = c(2, 4, 2, 2))
+boxplot(boxhunter$y, ylab = "yield")
+```
+
+We can see that the average yield is around 65 (64.25 to be exact, using the earlier summary), the data appears fairly normally distributed and there are no outliers. We can further use boxplots to gain some insight into the effect the different factors have on yield.
+
+```{r}
+par(mfrow = c(1, 3))
+boxplot(boxhunter$y ~ boxhunter$T, xlab = "Temperature", ylab = "yield")
+boxplot(boxhunter$y ~ boxhunter$C, xlab = "Concentration", ylab = "yield")
+boxplot(boxhunter$y ~ boxhunter$K, xlab = "Catalyst", ylab = "yield")
+```
+
+Immediately we can see that temperature probably plays an important role, with the higher temperature of 180°C resulting in higher yield. There doesn't appear to be much difference between concentrations, though the concentration of 20% has a slightly higher yield. Both catalysts result in similar yield values, though catalyst B has a much larger spread.
+
+There is a type of visualisation we haven't used yet in this course that is especially helpful for $2^{3}$ factorial designs, it is called a cube plot. To create one we will use the `cubePlot` function from the `FrF2` package.
+
+```{r}
+mylm <- lm(y ~ T * C * K, data = boxhunter)
+cubePlot(mylm, "T", "K", "C", main = "Cube plot for data exploration")
+```
+
+**Q.** Before reading on, have a look at the cube plot and the dataset together. Can you figure out what it is showing us?
+
+Each axis here refers to a factor, either T, C or K. The values along the axes only take values of -1 or +1, like our factors. The bottom left corner of the plot, closest to the viewer, has a value of -1 for C, -1 for T and -1 for K, with a blue 60 in the corner's circle to indicate yield. The cube plot helps us to unpack the data from all factors all at once. For instance the largest two yield values are in the back right corner, where T = 1 for both, and the smallest values are in the back left corner, where T = -1. This agrees with our hypothesis from the boxplots that temperature has an effect on yield. There are two more yield values when T = 1 though, those at the front right, and although still large, they are not as large as the back right, indicating that catalyst B might be better than A. Recall from the boxplot that the means for each catalyst looked pretty similar - perhaps there is an interaction with temperature.
+
+**Q.** Sketch out the 2D equivalent of a cube plot in the case that the catalyst factor did not exist.
+
+Before moving on, we can quickly create some interaction plots to further investigate what we just noticed.
+
+```{r}
+interaction.plot(boxhunter$T, 
+                 boxhunter$K, 
+                 boxhunter$y, 
+                 xlab = "Temperature", 
+                 trace.label = "Catalyst", 
+                 ylab = "Mean yield")
+```
+
+It looks like we should definitely find a significant interaction between catalyst and temperature. What about the other factors?
+
+```{r}
+par(mfrow = c(1, 2), mar = c(3.5, 4, 2.5, 5), mgp = c(2, 1, 0))
+
+interaction.plot(boxhunter$T, 
+                 boxhunter$C, 
+                 boxhunter$y, 
+                 xlab = "Temperature", 
+                 trace.label = "Concentration", 
+                 ylab = "Mean yield")
+
+interaction.plot(boxhunter$C, 
+                 boxhunter$K, 
+                 boxhunter$y, 
+                 xlab = "Concentration", 
+                 trace.label = "Catalyst", 
+                 ylab = "Mean yield")
+```
+
+The lines for concentration vs catalyst appear almost perfectly parallel, so there is not much chance for interaction there. Temperature vs concentration is fairly parallel but not to the same extent. A Tukey test later on will give us definitive answers on these relationships.
+
+**Analysing the experiment**
+
+Now that we have a feel for the dataset and have ruled out any potential outliers we can run the ANOVA test. When we call `aov` with the syntax below, using the $-^{2}$, we get all regular interaction terms without considering higher order ones, such as T:C:K.
+
+```{r}
+boxhunter$T <- as.factor(boxhunter$T)
+boxhunter$C <- as.factor(boxhunter$C)
+boxhunter$K <- as.factor(boxhunter$K)
+
+myaov <- aov(y ~ (T + C + K)^2, data = boxhunter)
+
+summary(myaov)
+```
+
+The ANOVA confirms a number of the relationships we had identified during the data exploration stage. Temperature is definitely statistically significant while concentration, that marginally appeared to have a significant effect, just misses out. Furthermore, as we suspected earlier, there is an interaction between temperature and catalyst and it is the only statistically significant interaction.
+
+Now we need to do some checking of necessary assumptions. We will start with the familiar Shapiro-Wilk.
+
+```{r}
+shapiro.test(boxhunter$y)
+```
+
+The p-value is well above the 0.05 threshold, so we can conclude that the data passes the Shapiro-Wilk normality test. There is another important assumption associated with the ordinary least squares that we are using to perform regression, that is, our errors should be uncorrelated with each other. The value of one residual, the distance between the model's fitted value vs the observed value, should not tell us anything about the values of nearby residuals. To test this we create a residual plot, with fitted values along the *x*-axis and their associated residual values along the *y*-axis.
+
+```{r}
+plot(fitted(myaov), residuals(myaov))
+```
+
+What we are hoping to see in this plot is randomness, that is, no discernable pattern between fitted values and residual values. There does not appear to be much of a pattern here, but it is hard to tell because of the small number of points. Recall from the start of the practical that the yield values in this dataset are actually averaged over two runs. It might be worthwhile to fit a model to the original dataset and investigate those residuals.
+
+```{r}
+boxhunter2 <- vroom("boxhunter2.csv")
+```
+
+```{r}
+boxhunter2$T <- as.factor(boxhunter2$T)
+boxhunter2$C <- as.factor(boxhunter2$C)
+boxhunter2$K <- as.factor(boxhunter2$K)
+
+myaov2 <- aov(y ~ (T + C + K)^2, data = boxhunter2)
+
+summary(myaov2)
+```
+
+```{r}
+plot(fitted(myaov2), residuals(myaov2))
+```
+
+With the increased number of datapoints it is clear that there is no pattern in the residuals, they are randomly distributed about 0. Another visualisation to help confirm normality of the residuals is the normal Q-Q plot.
+
+```{r}
+qqnorm(residuals(myaov2))
+qqline(residuals(myaov2))
+```
+
+We can see from the Q-Q plot that the points form a roughly straight line, further supporting that the data passes the normality assumption. With the necessary checks out of the way, and a new version of the dataset with multiple runs, we can conduct Tukey's test to understand the interactions of our factors.
+
+```{r}
+(tukey <- TukeyHSD(myaov2, ordered = FALSE, conf.level = 0.95))
+```
+
+The results show that there is certainly a difference between temperature levels and concentration levels, but not the catalyst levels. Almost all of the interactions between levels when comparing temperature vs concentration and temperature vs catalyst are significant. On the other hand, there is only one significant difference between levels when comparing concentration and catalyst. We can visualise these results with confidence level plots.
+
+```{r}
+par(mfrow = c(3, 2))
+plot(tukey)
+```
+
+Finally, we should look at the parameter estimates of the linear model. Note the * syntax, rather than +, to indicate that we are interested in all interactions.
+
+```{r}
+mylm <- lm(y ~ T * C * K, data = boxhunter2)
+summary(mylm)
+```
+
+The values in the `Estimate` column represent the coefficients of the obtained linear model for each of the factors and interactions. If our model is -
+
+$yield = \beta_0 + \beta_1 T + \beta_2 C + \beta_3 K + \beta_4 T:C +\beta_5 T:K + \beta_6 C:K + \beta_7 T:C:K$
+
+then $\beta_0 = 60$, $\beta_1 = 12$, $\beta_2 = -6$ and so on. These $\beta$ coefficients represent the degree of change in yield for every one unit of change in their respective factors. Since our codings take values of -1 and +1, the beta coefficients represent half the expected change across factor levels. i.e. changing temperature from -1 to + 1, that is 160°C to 180°C, should result in a yield increase of 14.
+
+**Have a go on your own**
+
+The provided `Concrete_Data.csv` is a dataset for investigating the effects that different ingredients have on concrete strength. While there any many ingredients in a good slab on concrete, we are using a subset of the data that contains only three ingredients: Cement, Blast Furnance Slag (BFS) and Fine Aggregate (FA).
+
+**Q.** Make boxplots for each of the factors to visualise the ingredients' effect on strength.
+
+**Q.** Can you make a cube plot for this experiment? Why/why not?
+
+**Q.** Create the three interaction plots for this experiment. One of the plots will look a little unusual - why is this?
+
+**Q.** Perform and analyse an ANOVA including all first order interactions terms for the data.
+
+**Q.** Create a linear model including first order interactions and interpret the results.
+
+**Q.** Finally, check that all necessary assumptions are satisfied. Interpret the results of the tests - should we have perhaps checked this earlier?
