@@ -1,0 +1,219 @@
+---
+title: "Practical_8"
+format: html
+---
+
+## INFS 2049 Experimental Design
+
+### Joshua Chopin
+
+### 2025-02-04
+
+**(Student: Michael Hudson)**
+
+<hr/>
+
+```{r}
+library(tidyverse)
+library(RColorBrewer)
+```
+
+
+**Disclaimer:** In this practical we will be relying heavily on generating random numbers to simulate experiments. In certain parts of the practical we will set a seed before running some lines of code. It is important for you to set the same seed to replicate the results you see in this practical. However, in most parts of the practical we will be simulating over many replications, so it is contradictory to run all of the replications with the same seed. In those cases you will get different results to those shown, though hopefully we are siumulating enough times that the overall result should be similar.
+
+**Why simulate?**
+
+There are many reasons to simulate an experiment, one of which is to gain insight into how the experiment might turn out and use those insights to inform decisions about relevant parameters. Let us say, for example, we have some information about the expected mean and standard deviation of a variable of interest. We could simulate the experiment many times using these assumptions and a hypothetical sample size of $N_1$. Perhaps out of all the simulations only 10% of the results were statistically significant. However, in a subsequent simulation, we increased the sample size to $N_2>N_1$, the proportion rose to 75%. In this example, taking a few minutes to simulate using the information available greatly increased our chances of obtaining a statistically significant result.
+
+To implement such a simulation in R we will need to start with a hypothetical experiment.
+
+**The WPM experiment**
+
+Two groups with $N_1 = 10$ people are asked to type from a sheet of paper for one minute and their words per minute (WPM) score is recorded. The first group underwent no treatment but the second group had drunk a cup of coffee 30 minutes prior to the experiment.
+
+**Q.** This experiment is an example of an independent samples t-test. Can you think of another design that could be more appropriate?
+
+From hypothetical scientific literature we know that the average person's WPM is about 40 with a standard deviation of 10. Now comes the purpose of the simulation. Lets say we hypothesise that the coffee will cause participants WPM to increase by 10. We can generate a variable that samples 10 times (our group size) from a normal distribution with a mean of 40 (average WPM) and a standard deviation of 5. In accordance with our hypothesis we can generate another identical variable, except with a mean of 50, representing the increase of 10 WPM we hypothesised about.
+
+```{r}
+set.seed(121)
+group_A <- rnorm(10, 40, 10)
+group_B <- rnorm(10, 50, 10)
+t.test(group_A, group_B, var.equal = TRUE)
+```
+
+Running a t-test on this data shows us what happened in one simulation. We can see a p-value of 0.03 indicating a statistically significant difference between the control and treatment groups. Is it time to pop the champagne and conclude that we have designed a great experiment for what we are trying to prove? Not yet. The result highly depends on the random samples of size 10 that we took from the normal distribution. If we take another random sample we will surely get a different result. It is only over *many* replications that we can gain confidence in our design. The code below repeats our simulation 1000 times and saves the results in the `p_values` list. Finally, the `prop_p` variable tells us what proportion of the simulations gave a statistically significant result.
+
+```{r}
+p_values <- length(1000)
+
+for(i in 1:1000) {
+  group_A <- rnorm(10, 40, 10)
+  group_B <- rnorm(10, 50, 10)
+  t_results <- t.test(group_A, group_B, var.equal = TRUE)
+  p_values[i] <- t_results$p.value
+}
+
+prop_p <- length(p_values[p_values < 0.05])/1000
+print(prop_p)
+```
+
+The results show that if we ran our experiment 1000 times, we could expect to get a statistically significant result just over half of the time. Basically, we would be flipping a coin as to whether the null hypothesis will be rejected and the experiment made worthwhile. Let's increase the number of participants in each group to 25 and see what effect it has on the proportion of statistically significant results.
+
+```{r}
+p_values <- length(1000)
+
+for(i in 1:1000) {
+  group_A <- rnorm(25, 40, 10)
+  group_B <- rnorm(25, 50, 10)
+  t_results <- t.test(group_A, group_B, var.equal = TRUE)
+  p_values[i] <- t_results$p.value
+}
+
+prop_p <- length(p_values[p_values < 0.05])/1000
+print(prop_p)
+```
+
+From a coin-flip to statistical significance more than 90% of the time. It seems like increasing the number of participants to 25 per group could definitely be worthwhile. But what if we have over-shot the mark, and are using more participants than we need? Or what if it is going to be a really expensive experiment and 90% certainty isn't enough? It is worthwhile to look at the *distribution* of `prop_p` values when changing the group size. Lets run a set of 1000 simulations again, but this time lets do it for multiple group sizes at once. We will try every group size between 10 and 50, and we will simulate 1000 times for each. Depending on your machine, this could take a minute or two.
+
+```{r}
+prop_p <- length(41)
+for(j in 10:50) {
+  
+  p_values <- length(1000)
+
+  for(i in 1:1000) {
+    group_A <- rnorm(j, 40, 10)
+    group_B <- rnorm(j, 50, 10)
+    t_results <- t.test(group_A, group_B, var.equal = TRUE)
+    p_values[i] <- t_results$p.value
+  }
+
+  prop_p[j - 9] <- length(p_values[p_values < 0.05])/1000
+}
+
+ggplot(data = data.frame(prop_p), aes(x = 10:50, y = prop_p)) +
+  geom_line(colour = "steelblue") +
+  theme_classic() +
+  xlab("Group Size")
+```
+
+**Q.** Why is the line in the previous plot so jagged? Why is it that sometimes the value of prop_p decreases despite group size increasing?
+
+We now have a pretty good estimate of what the probability of getting a statistically significant result is for different group sizes. We could go ahead and design an experiment based on these results. For instance, the first time we reach a 90% proportion of p-values less than 0.5 is with a group size of 13, that could be a fine choice. But remember, we are also estimating the parameters of our distribution. The mean WPM value of 40 is an estimate based on literature, the same goes for the stndard deviation. Most importantly, the difference that we expect to see between the control and treatment groups, 10 WPM, is our estimate of how we think the experiment will go.
+
+:::{.callout-important}
+I have issues with the above paragraph, and will investigate.
+:::
+
+**Q.** If the actual difference between groups is less than 10 WPM, would we need to consider larger or smaller group sizes?
+
+We can expand on the simulation we ran earlier by including varying differences in WPM between groups. Previously we estimated the difference would be 10 WPM, but lets also consider 0, 2, 5, 10, 15, 20 and 25. We will need to write a nested loop here, so that for each difference in WPM we consider each of the different group sizes. As you might have expected, this simulation will take roughly seven times as long as the previous one. Also, I will use the `RColorBrewer` package to get a nice colour palette for our plot.
+
+```{r}
+results.df <- data.frame(mean_diff = integer(287), 
+                         group_size = integer(287), 
+                         prop_p = double(287))
+prop_p <- length(41)
+mean_diffs <- c(0, 2, 5, 10, 15, 20, 25)
+
+for(k in 1:7) {
+  
+  md <- mean_diffs[k]
+  
+  for(j in 10:50) {
+    
+    p_values <- length(1000)
+    
+    for(i in 1:1000) {
+      group_A <- rnorm(j, 40, 10)
+      group_B <- rnorm(j, 40 + md, 10)
+      t_results <- t.test(group_A, group_B, var.equal = TRUE)
+      p_values[i] <- t_results$p.value
+    }
+    
+    prop_p[j - 9] <- length(p_values[p_values < 0.05])/1000
+  }
+  
+  results.df$prop_p[(((k - 1) * 41) + 1):(k * 41)] <- prop_p
+  results.df$mean_diff[(((k - 1) * 41) + 1):(k * 41)] <- array(rep(mean_diffs[k], 41))
+  results.df$group_size[(((k - 1) * 41) + 1):(k * 41)] <- array(10:50)
+}
+```
+
+```{r}
+ggplot(data = results.df) +
+  geom_line(aes(x = group_size, 
+                y = prop_p, 
+                group = as.factor(mean_diff), 
+                colour = as.factor(mean_diff))) +
+  labs(colour = "Mean difference") +
+  xlab("Group Size") +
+  scale_colour_manual(values = brewer.pal(7, "Set1"))
+```
+
+Now this one looks like a really useful plot. First, our initial simulation using a mean difference of 10 WPM is represented by the purple line. As we would expect, larger mean differences lead to larger proportions of statistically significant results, and vice versa. With a mean difference of 15 we can still get a few non-statistically significant results with smaller group sizes. However, once the mean difference increases to 20, we see that p is less than 0.05 in virtually every simulation for every group size. Finally, note that for a mean difference of 0 the `prop_p` value sits fairly steadily around 0.05.
+
+**Q.** Why is the `prop_p` value staying constant despite changes in group size when the mean difference is 0?
+
+**Simulating ANOVAs**
+
+Finally, we can simulate an ANOVA much the same way that we simulated for the previous t-test. Suppose we now had a third group in the experiment, maybe they had twice as much coffee as the original treatment group. We will call the three groups A, B and C, referring to control, one dose of coffee and two doses of coffee, respectively. Lastly, lets assume that the new group has a mean WPM of 55, that is 15 higher than the control and five higher than the original treatment group.
+
+```{r}
+set.seed(150)
+groups <- rep(c("A", "B", "C"), each = 10)
+WPM <- c(rnorm(10, 40, 10),
+         rnorm(10, 50, 10),
+         rnorm(10, 55, 10))
+
+results.df <- data.frame(groups, WPM)
+
+(aov_results <- summary(aov(formula = WPM ~ groups, data = results.df)))
+```
+
+We get a very small p-value, so for this simulation the difference between group means was highly statistically significant. Does this result hold over multiple simulations though? Lets check.
+
+```{r}
+# Group size 10
+
+p_values <- length(1000)
+
+for(i in 1:1000) {
+  groups <- rep(c("A", "B", "C"), each = 10)
+  WPM <- c(rnorm(10, 40, 10),
+           rnorm(10, 50, 10),
+           rnorm(10, 55, 10))
+  results.df <- data.frame(groups, WPM)
+  
+  aov_results <- summary(aov(formula = WPM ~ groups, data = results.df))
+  p_values[i] <- aov_results[[1]]$'Pr(>F)'[1]
+}
+
+prop_p <- length(p_values[p_values < 0.05])/1000
+print(prop_p)
+```
+
+```{r}
+# Group size 20 & B mean 45, C mean 50
+
+p_values <- length(1000)
+
+for(i in 1:1000) {
+  groups <- rep(c("A", "B", "C"), each = 20)
+  WPM <- c(rnorm(20, 40, 10),
+           rnorm(20, 45, 10),
+           rnorm(20, 50, 10))
+  results.df <- data.frame(groups, WPM)
+  
+  aov_results <- summary(aov(formula = WPM ~ groups, data = results.df))
+  p_values[i] <- aov_results[[1]]$'Pr(>F)'[1]
+}
+
+prop_p <- length(p_values[p_values < 0.05])/1000
+print(prop_p)
+```
+
+Over 1000 simulations you should be seeing statistically significant results at a proportion higher than 80%.
+
+**Q.** Though it looks like 10 was a sufficient group size for this experiment, we wouldn't want to go any lower than 10 regardless. Can you find a combination of mean differences where we would require a group size of 20 in order to reach a proportion of 80% or higher? (Note: You could do this by trial and error, adjusting the parameters and running the code again, or you could code up another loop like we did for the t-tests and plot the results).
