@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Practical_8</title>
+<title>Practical 9 - Case Study</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,6 +19,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -34,6 +68,35 @@ ul.task-list li input[type="checkbox"] {
 <link href="Practical_9_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="Practical_9_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -45,7 +108,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Practical_8</h1>
+<h1 class="title">Practical 9 - Case Study</h1>
 </div>
 
 
@@ -71,7 +134,172 @@ ul.task-list li input[type="checkbox"] {
 <h3 class="anchored" data-anchor-id="section">2025-02-04</h3>
 <p><strong>(Student: Michael Hudson)</strong></p>
 <hr>
-<p><img src="leading-brands-groceries.jpg" class="img-fluid"></p>
+<p><img src="milk-products.jpg" class="img-fluid"></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vroom)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'vroom'
+
+The following objects are masked from 'package:readr':
+
+    as.col_spec, col_character, col_date, col_datetime, col_double,
+    col_factor, col_guess, col_integer, col_logical, col_number,
+    col_skip, col_time, cols, cols_condense, cols_only, date_names,
+    date_names_lang, date_names_langs, default_locale, fwf_cols,
+    fwf_empty, fwf_positions, fwf_widths, locale, output_column,
+    problems, spec</code></pre>
+</div>
+</div>
+<p>A marketing research organisation monitors the food purchases of families in several areas. Each week each family submits a report detailing its purchases of food items including price paid, brand name, size and where purchased. These data are used by the research firm to monitor the impact of advertising campaigns for various food items.</p>
+<p>A study was carried out to determine the effectiveness of four different advertisements (ads) designed to stimulate consumption of milk products. The four ads were shown on local TV stations in different cities in five geographical areas. Three cities were chosen in each geographical area, ech to receive one of the three ads. After two months of advertising, the consumption of milk products (measured in dollars) in the second month was determined. Families varied in size from one to six people.</p>
+<p>In this case study we will analyse the data using a number of different tests and briefly interpret the results. The data can be found in the <code>Advertising.csv</code> file. In the head of data below we can see some typical expenditure amounts for the first type of advertising, in the first region for families of size one to six. The summary tells us that the mean expenditure is around $41 ($40.72) and also that the experiment is probably well balanced based on the summary statistics of each factor (i.e.&nbsp;equal sample sizes per level).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>advertising <span class="ot">&lt;-</span> <span class="fu">vroom</span>(<span class="st">"Advertising.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 120 Columns: 4
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+dbl (4): EXPEN, AD, REGION, SIZE
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(advertising)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 4
+  EXPEN    AD REGION  SIZE
+  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+1  12.4     1      1     1
+2  20.5     1      1     2
+3  30.8     1      1     3
+4  39.4     1      1     4
+5  48.9     1      1     5
+6  58.0     1      1     6</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(advertising)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     EXPEN             AD           REGION       SIZE    
+ Min.   : 0.00   Min.   :1.00   Min.   :1   Min.   :1.0  
+ 1st Qu.:22.60   1st Qu.:1.75   1st Qu.:2   1st Qu.:2.0  
+ Median :38.87   Median :2.50   Median :3   Median :3.5  
+ Mean   :40.72   Mean   :2.50   Mean   :3   Mean   :3.5  
+ 3rd Qu.:57.66   3rd Qu.:3.25   3rd Qu.:4   3rd Qu.:5.0  
+ Max.   :98.02   Max.   :4.00   Max.   :5   Max.   :6.0  </code></pre>
+</div>
+</div>
+<p><strong>Q.</strong> Create some visualisations for data exploration to gain a better understanding of the dataset.</p>
+<p>The tests we will be conducting on this dataset are as follows:</p>
+<ul>
+<li>One-way ANOVA</li>
+<li>Tukey’s test</li>
+<li>Parameter Estimates</li>
+<li>Randomised Block Design</li>
+<li>Factorial ANOVA</li>
+<li>ANCOVA</li>
+</ul>
+<p><strong>Q.</strong> Before running each of the following tests, make sure to test any necessary assumptions about the data e.g.&nbsp;normality (Shapiro-Wilk), homoscedasticity a.k.a homegeneity of variance (Bartlett’s test | Levene’s test | “rule of thumb” where either sample size and/or variance is within a factor of two for largest and smallest values applicable to groups).</p>
+<section id="one-way-anova" class="level4">
+<h4 class="anchored" data-anchor-id="one-way-anova">One-way ANOVA</h4>
+<p>To begin we need to convert the AD column to a factor. Next we run the <code>aov</code> function as normal.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>advertising<span class="sc">$</span>AD <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(advertising<span class="sc">$</span>AD)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>myaov <span class="ot">&lt;-</span> <span class="fu">aov</span>(<span class="at">formula =</span> EXPEN <span class="sc">~</span> AD, <span class="at">data =</span> advertising)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(myaov)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             Df Sum Sq Mean Sq F value Pr(&gt;F)  
+AD            3   4586  1528.6   3.156 0.0275 *
+Residuals   116  56187   484.4                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>The results indicate that there are some differences among mean milk expenditure for the different types of ads at the 0.05 significance level.</p>
+</section>
+<section id="tukeys-test" class="level4">
+<h4 class="anchored" data-anchor-id="tukeys-test">Tukey’s test</h4>
+<p>Now that a statistically significant difference between means has been identified, it is important to investigate where, and by how much, those differences are occurring. Tukey’s test will be used to determine which pairs of advertising have statistically significant differences.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>tukey_test <span class="ot">&lt;-</span> <span class="fu">TukeyHSD</span>(myaov)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>tukey_test</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = EXPEN ~ AD, data = advertising)
+
+$AD
+         diff        lwr      upr     p adj
+2-1  2.408000 -12.404564 17.22056 0.9743153
+3-1 -2.287667 -17.100230 12.52490 0.9778302
+4-1 13.791667  -1.020897 28.60423 0.0776356
+3-2 -4.695667 -19.508230 10.11690 0.8418862
+4-2 11.383667  -3.428897 26.19623 0.1927429
+4-3 16.079333   1.266770 30.89190 0.0277618</code></pre>
+</div>
+</div>
+<p>The results show that most pairwise comparisons do not meet the requirements for statistical significance. However, the difference between the third and fourth type of advertisment is statistically significant, and the difference between the fourth and first only just misses out.</p>
+<p><strong>Q.</strong> Create some plots to visualise the results of the Tukey’s test.</p>
+</section>
+<section id="parameter-estimates" class="level4">
+<h4 class="anchored" data-anchor-id="parameter-estimates">Parameter Estimates</h4>
+<p>The next step involves creating a linear model, for EXPEN ~ AD, in order to analyse the relevant parameter estimates. Here the first ad is chosen to be used as the baseline level, however this can be changed using the <code>relevel</code> function if desired.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mylm <span class="ot">&lt;-</span> <span class="fu">lm</span>(EXPEN <span class="sc">~</span> AD, <span class="at">data =</span> advertising)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mylm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = EXPEN ~ AD, data = advertising)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-44.570 -17.123   0.881  16.470  46.990 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)   37.239      4.018   9.268 1.24e-15 ***
+AD2            2.408      5.683   0.424   0.6725    
+AD3           -2.288      5.683  -0.403   0.6880    
+AD4           13.792      5.683   2.427   0.0168 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 22.01 on 116 degrees of freedom
+Multiple R-squared:  0.07546,   Adjusted R-squared:  0.05155 
+F-statistic: 3.156 on 3 and 116 DF,  p-value: 0.02749</code></pre>
+</div>
+</div>
+<p>We know that this linear model takes the following form -</p>
+<p><span class="math inline">\(EXPEN=\beta_0+\beta_1AD2+\beta_2AD3+\beta_3AD4\)</span></p>
+<p>and that the mean EXPEN values for ads 1, 2, 3 and 4 are <span class="math inline">\(\beta_0\)</span>, <span class="math inline">\(\beta_0+\beta_1\)</span>, <span class="math inline">\(\beta_0+\beta_2\)</span> and <span class="math inline">\(\beta_0+\beta_3\)</span>, respectively. The p-values show that the intercept term, referring to the first ad, and the term for the forth ad, are both statistically significant at the 0.05 level.</p>
+</section>
+<section id="randomised-block-design" class="level4">
+<h4 class="anchored" data-anchor-id="randomised-block-design">Randomised Block Design</h4>
+</section>
+<section id="factorial-anova" class="level4">
+<h4 class="anchored" data-anchor-id="factorial-anova">Factorial ANOVA</h4>
+</section>
+<section id="ancova" class="level4">
+<h4 class="anchored" data-anchor-id="ancova">ANCOVA</h4>
+</section>
 </section>
 </section>
 

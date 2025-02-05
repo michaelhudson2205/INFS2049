@@ -1,5 +1,5 @@
 ---
-title: "Practical_8"
+title: "Practical 9 - Case Study"
 format: html
 ---
 
@@ -13,5 +13,106 @@ format: html
 
 <hr/>
 
-![](leading-brands-groceries.jpg)
+![](milk-products.jpg)
+
+```{r}
+library(tidyverse)
+library(vroom)
+```
+
+
+A marketing research organisation monitors the food purchases of families in several areas. Each week each family submits a report detailing its purchases of food items including price paid, brand name, size and where purchased. These data are used by the research firm to monitor the impact of advertising campaigns for various food items.
+
+A study was carried out to determine the effectiveness of four different advertisements (ads) designed to stimulate consumption of milk products. The four ads were shown on local TV stations in different cities in five geographical areas. Three cities were chosen in each geographical area, ech to receive one of the three ads. After two months of advertising, the consumption of milk products (measured in dollars) in the second month was determined. Families varied in size from one to six people.
+
+In this case study we will analyse the data using a number of different tests and briefly interpret the results. The data can be found in the `Advertising.csv` file. In the head of data below we can see some typical expenditure amounts for the first type of advertising, in the first region for families of size one to six. The summary tells us that the mean expenditure is around \$41 ($40.72) and also that the experiment is probably well balanced based on the summary statistics of each factor (i.e. equal sample sizes per level).
+
+```{r}
+advertising <- vroom("Advertising.csv")
+```
+
+```{r}
+glimpse(advertising)
+```
+
+```{r}
+summary(advertising)
+```
+
+**Q.** Create some visualisations for data exploration to gain a better understanding of the dataset.
+
+The tests we will be conducting on this dataset are as follows:
+
+- One-way ANOVA
+- Tukey's test
+- Parameter Estimates
+- Randomised Block Design
+- Factorial ANOVA
+- ANCOVA
+
+**Q.** Before running each of the following tests, make sure to test any necessary assumptions about the data e.g. normality (Shapiro-Wilk), homoscedasticity a.k.a homegeneity of variance (Bartlett's test | Levene's test | "rule of thumb" where either sample size and/or variance is within a factor of two for largest and smallest values applicable to groups).
+
+#### One-way ANOVA
+
+To begin we need to convert the AD column to a factor. Next we run the `aov` function as normal.
+
+```{r}
+advertising$AD <- as.factor(advertising$AD)
+myaov <- aov(formula = EXPEN ~ AD, data = advertising)
+summary(myaov)
+```
+
+The results indicate that there are some differences among mean milk expenditure for the different types of ads at the 0.05 significance level.
+
+#### Tukey's test
+
+Now that a statistically significant difference between means has been identified, it is important to investigate where, and by how much, those differences are occurring. Tukey's test will be used to determine which pairs of advertising have statistically significant differences.
+
+```{r}
+tukey_test <- TukeyHSD(myaov)
+tukey_test
+```
+
+The results show that most pairwise comparisons do not meet the requirements for statistical significance. However, the difference between the third and fourth type of advertisment is statistically significant, and the difference between the fourth and first only just misses out.
+
+**Q.** Create some plots to visualise the results of the Tukey's test.
+
+#### Parameter Estimates
+
+The next step involves creating a linear model, for EXPEN ~ AD, in order to analyse the relevant parameter estimates. Here the first ad is chosen to be used as the baseline level, however this can be changed using the `relevel` function if desired.
+
+```{r}
+mylm <- lm(EXPEN ~ AD, data = advertising)
+summary(mylm)
+```
+
+We know that this linear model takes the following form -
+
+$EXPEN=\beta_0+\beta_1AD2+\beta_2AD3+\beta_3AD4$
+
+and that the mean EXPEN values for ads 1, 2, 3 and 4 are $\beta_0$, $\beta_0+\beta_1$, $\beta_0+\beta_2$ and $\beta_0+\beta_3$, respectively. The p-values show that the intercept term, referring to the first ad, and the term for the forth ad, are both statistically significant at the 0.05 level.
+
+#### Randomised Block Design
+
+In an incredibly fortunate turn of events it so happens that if we choose to take a subset of the original dataset containing only single person families, the result is a balanced 5x4 block design, where we can block by Region.
+
+```{r}
+advertising2 <- advertising[advertising$SIZE == 1,]
+glimpse(advertising2)
+```
+
+Recall that to run a block design we call the `aov` function as we normally would (remember to use the new subset of the data, `advertising2`) -
+
+```{r}
+myaov2 <- aov(formula = EXPEN ~ AD + REGION, data = advertising2)
+summary(myaov2)
+```
+
+The results show that when we block by region the difference between ads is no longer statistically significant at the 0.05 level. On the other hand, we gain some new information, that the region means are not equal at the 0.05 level.
+
+#### Factorial ANOVA
+
+
+#### ANCOVA
+
 
