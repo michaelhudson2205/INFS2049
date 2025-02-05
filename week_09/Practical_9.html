@@ -163,12 +163,34 @@ The following objects are masked from 'package:readr':
     fwf_empty, fwf_positions, fwf_widths, locale, output_column,
     problems, spec</code></pre>
 </div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(car)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'car' was built under R version 4.4.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: carData</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'carData' was built under R version 4.4.2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'car'
+
+The following object is masked from 'package:dplyr':
+
+    recode
+
+The following object is masked from 'package:purrr':
+
+    some</code></pre>
+</div>
 </div>
 <p>A marketing research organisation monitors the food purchases of families in several areas. Each week each family submits a report detailing its purchases of food items including price paid, brand name, size and where purchased. These data are used by the research firm to monitor the impact of advertising campaigns for various food items.</p>
 <p>A study was carried out to determine the effectiveness of four different advertisements (ads) designed to stimulate consumption of milk products. The four ads were shown on local TV stations in different cities in five geographical areas. Three cities were chosen in each geographical area, ech to receive one of the three ads. After two months of advertising, the consumption of milk products (measured in dollars) in the second month was determined. Families varied in size from one to six people.</p>
 <p>In this case study we will analyse the data using a number of different tests and briefly interpret the results. The data can be found in the <code>Advertising.csv</code> file. In the head of data below we can see some typical expenditure amounts for the first type of advertising, in the first region for families of size one to six. The summary tells us that the mean expenditure is around $41 ($40.72) and also that the experiment is probably well balanced based on the summary statistics of each factor (i.e.&nbsp;equal sample sizes per level).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>advertising <span class="ot">&lt;-</span> <span class="fu">vroom</span>(<span class="st">"Advertising.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>advertising <span class="ot">&lt;-</span> <span class="fu">vroom</span>(<span class="st">"Advertising.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Rows: 120 Columns: 4
 ── Column specification ────────────────────────────────────────────────────────
@@ -180,21 +202,18 @@ dbl (4): EXPEN, AD, REGION, SIZE
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(advertising)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(advertising)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 4
-  EXPEN    AD REGION  SIZE
-  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
-1  12.4     1      1     1
-2  20.5     1      1     2
-3  30.8     1      1     3
-4  39.4     1      1     4
-5  48.9     1      1     5
-6  58.0     1      1     6</code></pre>
+<pre><code>Rows: 120
+Columns: 4
+$ EXPEN  &lt;dbl&gt; 12.35, 20.52, 30.85, 39.35, 48.87, 58.01, 28.26, 37.67, 44.70, …
+$ AD     &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
+$ REGION &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, …
+$ SIZE   &lt;dbl&gt; 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, …</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(advertising)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(advertising)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     EXPEN             AD           REGION       SIZE    
  Min.   : 0.00   Min.   :1.00   Min.   :1   Min.   :1.0  
@@ -220,9 +239,9 @@ dbl (4): EXPEN, AD, REGION, SIZE
 <h4 class="anchored" data-anchor-id="one-way-anova">One-way ANOVA</h4>
 <p>To begin we need to convert the AD column to a factor. Next we run the <code>aov</code> function as normal.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>advertising<span class="sc">$</span>AD <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(advertising<span class="sc">$</span>AD)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>myaov <span class="ot">&lt;-</span> <span class="fu">aov</span>(<span class="at">formula =</span> EXPEN <span class="sc">~</span> AD, <span class="at">data =</span> advertising)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(myaov)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>advertising<span class="sc">$</span>AD <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(advertising<span class="sc">$</span>AD)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>myaov <span class="ot">&lt;-</span> <span class="fu">aov</span>(<span class="at">formula =</span> EXPEN <span class="sc">~</span> AD, <span class="at">data =</span> advertising)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(myaov)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>             Df Sum Sq Mean Sq F value Pr(&gt;F)  
 AD            3   4586  1528.6   3.156 0.0275 *
@@ -237,8 +256,8 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <h4 class="anchored" data-anchor-id="tukeys-test">Tukey’s test</h4>
 <p>Now that a statistically significant difference between means has been identified, it is important to investigate where, and by how much, those differences are occurring. Tukey’s test will be used to determine which pairs of advertising have statistically significant differences.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>tukey_test <span class="ot">&lt;-</span> <span class="fu">TukeyHSD</span>(myaov)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>tukey_test</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>tukey_test <span class="ot">&lt;-</span> <span class="fu">TukeyHSD</span>(myaov)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>tukey_test</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  Tukey multiple comparisons of means
     95% family-wise confidence level
@@ -262,8 +281,8 @@ $AD
 <h4 class="anchored" data-anchor-id="parameter-estimates">Parameter Estimates</h4>
 <p>The next step involves creating a linear model, for EXPEN ~ AD, in order to analyse the relevant parameter estimates. Here the first ad is chosen to be used as the baseline level, however this can be changed using the <code>relevel</code> function if desired.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mylm <span class="ot">&lt;-</span> <span class="fu">lm</span>(EXPEN <span class="sc">~</span> AD, <span class="at">data =</span> advertising)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mylm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>mylm <span class="ot">&lt;-</span> <span class="fu">lm</span>(EXPEN <span class="sc">~</span> AD, <span class="at">data =</span> advertising)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mylm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -293,12 +312,87 @@ F-statistic: 3.156 on 3 and 116 DF,  p-value: 0.02749</code></pre>
 </section>
 <section id="randomised-block-design" class="level4">
 <h4 class="anchored" data-anchor-id="randomised-block-design">Randomised Block Design</h4>
+<p>In an incredibly fortunate turn of events it so happens that if we choose to take a subset of the original dataset containing only single person families, the result is a balanced 5x4 block design, where we can block by Region.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>advertising2 <span class="ot">&lt;-</span> advertising[advertising<span class="sc">$</span>SIZE <span class="sc">==</span> <span class="dv">1</span>,]</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(advertising2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 20
+Columns: 4
+$ EXPEN  &lt;dbl&gt; 12.35, 28.26, 10.97, 0.00, 13.11, 21.86, 13.76, 0.00, 11.90, 8.…
+$ AD     &lt;fct&gt; 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4
+$ REGION &lt;dbl&gt; 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5
+$ SIZE   &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1</code></pre>
+</div>
+</div>
+<p>Recall that to run a block design we call the <code>aov</code> function as we normally would (remember to use the new subset of the data, <code>advertising2</code>) -</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>myaov2 <span class="ot">&lt;-</span> <span class="fu">aov</span>(<span class="at">formula =</span> EXPEN <span class="sc">~</span> AD <span class="sc">+</span> REGION, <span class="at">data =</span> advertising2)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(myaov2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Df Sum Sq Mean Sq F value Pr(&gt;F)  
+AD           3  332.8  110.94   1.719 0.2059  
+REGION       1  205.5  205.48   3.184 0.0946 .
+Residuals   15  968.0   64.54                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>The results show that when we block by region the difference between ads is no longer statistically significant at the 0.05 level. On the other hand, we gain some new information, that the region means are not equal at the 0.05 level.</p>
 </section>
 <section id="factorial-anova" class="level4">
 <h4 class="anchored" data-anchor-id="factorial-anova">Factorial ANOVA</h4>
+<p>Using a factorial, or two-way, ANOVA we can investigate the effect that the interaction between ad and region has on expenditure. Keep in mind, we return to the full dataset now, saved in the <code>advertising</code> variable.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>myaov3 <span class="ot">&lt;-</span> <span class="fu">aov</span>(<span class="at">formula =</span> EXPEN <span class="sc">~</span> AD <span class="sc">*</span> REGION, <span class="at">data =</span> advertising)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(myaov3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             Df Sum Sq Mean Sq F value Pr(&gt;F)  
+AD            3   4586  1528.6   3.136 0.0283 *
+REGION        1    764   763.7   1.567 0.2133  
+AD:REGION     3    837   279.1   0.573 0.6342  
+Residuals   112  54586   487.4                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>The results show that</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Investigate above paragraph.</p>
+</div>
+</div>
+<p><strong>Q.</strong> Create an interaction plot to visualise the interaction between ad and region.</p>
 </section>
 <section id="ancova" class="level4">
 <h4 class="anchored" data-anchor-id="ancova">ANCOVA</h4>
+<p>In this case lets again analyse the effect of ad on expenditure, but now controlling for the family size variable by treating it as a covariate. To perform the ANCOVA we need to make use of the <code>car</code> package and its unique <code>Anova</code> function. We still run the <code>aov</code> function we are used to, it will just be later fed into the <code>Anova</code> function.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>ancova_model <span class="ot">&lt;-</span> <span class="fu">aov</span>(<span class="at">formula =</span> EXPEN <span class="sc">~</span> AD <span class="sc">+</span> SIZE, <span class="at">data =</span> advertising)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">Anova</span>(<span class="at">mod =</span> ancova_model, <span class="at">type =</span> <span class="st">"III"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Anova Table (Type III tests)
+
+Response: EXPEN
+            Sum Sq  Df  F value    Pr(&gt;F)    
+(Intercept)      5   1   0.0408    0.8402    
+AD            4586   3  11.5182 1.169e-06 ***
+SIZE         40926   1 308.3913 &lt; 2.2e-16 ***
+Residuals    15261 115                       
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>The results show that while controlling for the family size variable the <code>ad</code> variable is still statistically significant. Furthermore, size itself has significantly contributed to the model.</p>
+<p><strong>Q.</strong> Are there any other tests you would like to run? Or any other visualisations you would like to create?</p>
 </section>
 </section>
 </section>

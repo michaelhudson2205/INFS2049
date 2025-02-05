@@ -18,6 +18,7 @@ format: html
 ```{r}
 library(tidyverse)
 library(vroom)
+library(car)
 ```
 
 
@@ -112,7 +113,30 @@ The results show that when we block by region the difference between ads is no l
 
 #### Factorial ANOVA
 
+Using a factorial, or two-way, ANOVA we can investigate the effect that the interaction between ad and region has on expenditure. Keep in mind, we return to the full dataset now, saved in the `advertising` variable.
+
+```{r}
+myaov3 <- aov(formula = EXPEN ~ AD * REGION, data = advertising)
+summary(myaov3)
+```
+
+The results show that 
+
+::: {.callout-important}
+Investigate above paragraph.
+:::
+
+**Q.** Create an interaction plot to visualise the interaction between ad and region.
 
 #### ANCOVA
 
+In this case lets again analyse the effect of ad on expenditure, but now controlling for the family size variable by treating it as a covariate. To perform the ANCOVA we need to make use of the `car` package and its unique `Anova` function. We still run the `aov` function we are used to, it will just be later fed into the `Anova` function.
 
+```{r}
+ancova_model <- aov(formula = EXPEN ~ AD + SIZE, data = advertising)
+Anova(mod = ancova_model, type = "III")
+```
+
+The results show that while controlling for the family size variable the `ad` variable is still statistically significant. Furthermore, size itself has significantly contributed to the model.
+
+**Q.** Are there any other tests you would like to run? Or any other visualisations you would like to create?
